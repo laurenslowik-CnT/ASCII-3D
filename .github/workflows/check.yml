@@ -1,26 +1,22 @@
-name: Check
+name: All CI tasks
 
 on:
+  push:
+    branches:
+      - develop
+      - main
   pull_request:
     branches:
       - develop
+      - main
 
 jobs:
-  check:
-    name: Check
+  run-all-jobs:
+    name: All CI tasks
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
-
-      - name: Cache node modules
-        id: node-modules-cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Use NVM node version
         uses: actions/setup-node@v4
@@ -29,7 +25,6 @@ jobs:
           cache: "yarn"
 
       - name: Install dependencies
-        if: steps.node-modules-cache.outputs.cache-hit != 'true'
         run: yarn install --immutable
 
       - name: Lint check

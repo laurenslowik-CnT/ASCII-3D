@@ -9,7 +9,7 @@ const preview: Preview = {
        * For more details
        * @see https://storybook.js.org/docs/get-started/frameworks/nextjs#nextjs-navigation
        */
-      appDirectory: true, 
+      appDirectory: true,
     },
     controls: {
       matchers: {

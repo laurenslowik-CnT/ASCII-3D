@@ -65,7 +65,7 @@
     "webpack": "^5.91.0"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,json,yml,md,css}": [
+    "*.{ts,tsx,js,jsx,json,yml,md,css,graphql}": [
       "prettier --write"
     ],
     "*.{ts,tsx,js,jsx}": [
