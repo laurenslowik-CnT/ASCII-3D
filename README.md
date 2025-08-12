@@ -27,6 +27,12 @@ yarn
 yarn dev
 ```
 
+## Yarn Plug’n’Play (PnP)
+
+This project uses [Yarn Plug’n’Play (PnP)](https://yarnpkg.com/features/pnp) for dependency management, which eliminates the `node_modules` folder. Some VSCode extensions and language features may not work as expected without additional configuration. See the [Yarn PnP VSCode guide](https://yarnpkg.com/getting-started/editor-sdks) for setup instructions.
+
+> **Note:** Misconfigured VSCode settings can cause issues during Next.js builds. Ensure your editor is correctly set up and you are running the latest stable version of Yarn (currently 4.9.2) `yarn set version stable` before running `yarn build`.
+
 ## Storybook
 
 This project uses Storybook deployed on Vercel at the following permanent URLs:
