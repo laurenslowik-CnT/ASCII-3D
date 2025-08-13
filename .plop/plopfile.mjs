@@ -1,4 +1,4 @@
-export default function (plop) {
+function generator(plop) {
   plop.setGenerator("component", {
     description: "Creates a new component inside of 'src/app/components'",
     prompts: [
@@ -30,3 +30,5 @@ export default function (plop) {
     ],
   });
 }
+
+export default generator;
