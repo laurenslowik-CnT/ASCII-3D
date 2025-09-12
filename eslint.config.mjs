@@ -17,7 +17,8 @@ import tailwind from "eslint-plugin-tailwindcss";
 import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
 import jsxA11y from "eslint-plugin-jsx-a11y";
-import importPlugin from "eslint-plugin-import";
+import { importX } from "eslint-plugin-import-x";
+/* eslint-disable-next-line import-x/default */
 import reactHooks from "eslint-plugin-react-hooks";
 import pluginPromise from "eslint-plugin-promise";
 import json from "@eslint/json";
@@ -56,6 +57,15 @@ const patchedNextConfig = fixupConfigRules(
     if (c.plugins && c.plugins["react-hooks"]) {
       delete c.plugins["react-hooks"];
     }
+    if (c.settings && c.settings["import/parsers"]) {
+      delete c.settings["import/parsers"];
+    }
+    if (c.settings && c.settings["import/resolver"]) {
+      delete c.settings["import/resolver"];
+    }
+    if (c.settings && c.rules["import/no-anonymous-default-export"]) {
+      delete c.rules["import/no-anonymous-default-export"];
+    }
     return c;
   }),
 );
@@ -70,7 +80,7 @@ export default defineConfig([
     extends: ["json/recommended"],
   },
   {
-    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.mjs"],
+    files: ["**/*.{ts,tsx,js,tsx,mjs}"],
     linterOptions: {
       reportUnusedDisableDirectives: "error",
     },
@@ -86,8 +96,8 @@ export default defineConfig([
       patchedNextConfig,
       unicorn.configs.recommended,
       pluginPromise.configs["flat/recommended"],
-      importPlugin.flatConfigs.recommended,
-      importPlugin.flatConfigs.typescript,
+      importX.flatConfigs.recommended,
+      importX.flatConfigs.typescript,
       eslintConfigPrettier,
       reactHooksExtra.configs.recommended,
     ],
@@ -119,6 +129,7 @@ export default defineConfig([
     rules: {
       // Globally Tuned rules
       "@typescript-eslint/no-confusing-non-null-assertion": "error",
+      "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-duplicate-type-constituents": "off",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-shadow": "error",
@@ -129,10 +140,10 @@ export default defineConfig([
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/prefer-string-starts-ends-with": "error",
       eqeqeq: ["error", "smart"],
-      "import/no-duplicates": "error",
-      "import/no-named-as-default": "off",
-      "import/no-named-as-default-member": "off",
-      "import/no-self-import": "error",
+      "import-x/no-duplicates": "error",
+      "import-x/no-named-as-default": "off",
+      "import-x/no-named-as-default-member": "off",
+      "import-x/no-self-import": "error",
       "no-console": "error",
       "no-continue": "error",
       "no-else-return": "error",
@@ -153,6 +164,7 @@ export default defineConfig([
       "react/jsx-props-no-spread-multi": "error",
       "react/no-access-state-in-setstate": "error",
       "react/no-unstable-nested-components": "error",
+      "sonarjs/deprecation": "off",
       "sonarjs/todo-tag": "off",
       "unicorn/filename-case": "off",
       "unicorn/prefer-global-this": "off",
@@ -163,11 +175,12 @@ export default defineConfig([
       "unicorn/no-array-reduce": "off",
       "unicorn/no-null": "off",
       "unicorn/no-useless-switch-case": "off",
+      "unicorn/numeric-separators-style": "off",
       "unicorn/switch-case-braces": "off",
     },
   },
   {
-    files: ["src/components/**/*.tsx", "**/*.jsx"],
+    files: ["src/components/**/*.{tsx,jsx}"],
     plugins: {
       "react-refresh": reactRefresh,
     },
