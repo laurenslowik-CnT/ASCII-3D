@@ -1,9 +1,9 @@
 import type { StoryObj } from "@storybook/react";
-import { {{pascalCase name}}ComponentProps, {{pascalCase name}}Component } from "./{{kebabCase name}}.component";
+import { {{pascalCase name}}Props, {{pascalCase name}} } from "./index";
 
 const meta = {
   title: "Components/{{titleCase name}}",
-  component: {{pascalCase name}}Component,
+  component: {{pascalCase name}},
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
@@ -43,7 +43,7 @@ type Story = StoryObj<typeof meta>;
 
 // Use this as a quick-start for your default properties.
 // you can add and remove items to this, or delete it if you like
-const {{constantCase name}}_COMPONENT_PROPS_EXAMPLE: {{pascalCase name}}ComponentProps = {
+const {{constantCase name}}_PROPS_EXAMPLE: {{pascalCase name}}Props = {
   aBoolean: false,
   aColor: "green",
   anEnum: "baz",
@@ -52,13 +52,13 @@ const {{constantCase name}}_COMPONENT_PROPS_EXAMPLE: {{pascalCase name}}Componen
 };
 
 export const Basic: Story = {
-  render: (props: {{pascalCase name}}ComponentProps) => {
+  render: (props: {{pascalCase name}}Props) => {
     // you can take in anything you want from "args" down there
     // and modify it here in this function before sending it out again.
     // This is a great way to customize and tweak your stories.
-    return <{{pascalCase name}}Component {...props} />;
+    return <{{pascalCase name}} {...props} />;
   },
   args: {
-    ...{{constantCase name}}_COMPONENT_PROPS_EXAMPLE,
+    ...{{constantCase name}}_PROPS_EXAMPLE,
   },
 };

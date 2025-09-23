@@ -1,6 +1,6 @@
 // import clsx from 'clsx';
 
-export type {{pascalCase name}}ComponentProps = {
+export type {{pascalCase name}}Props = {
   aString: string;
   aNumber: number;
   anEnum: "foo" | "bar" | "baz";
@@ -8,7 +8,7 @@ export type {{pascalCase name}}ComponentProps = {
   aColor: string;
 };
 
-export const {{pascalCase name}}Component = (props: {{pascalCase name}}ComponentProps) => (
+export const {{pascalCase name}} = (props: {{pascalCase name}}Props) => (
   <div>
     <div>aString: {props.aString}</div>
     <div>aNumber: {props.aNumber}</div>
