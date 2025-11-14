@@ -1,12 +1,3 @@
-// Readme for those using VS Code and Yarn and ESLint.
-// Using yarn with pnp means the eslint bin is not in the <root_directory>node_modules directory.
-// This means VS Code's "OUTPUT" panel for eslint had tons of errors.
-// You could adjust your .yarnrc to use node_modules, i.e. `nodeLinker: node-modules`
-// https://yarnpkg.com/getting-started/editor-sdks
-// specifically VS Code and its use of ZipFS https://yarnpkg.com/getting-started/editor-sdks#vscode
-// The command that auto-detects your package.json and sets up the editor is:
-// yarn dlx @yarnpkg/sdks vscode
-
 import { defineConfig, globalIgnores } from "eslint/config";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
@@ -17,7 +8,6 @@ import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import { importX } from "eslint-plugin-import-x";
-/* eslint-disable-next-line import-x/default */
 import reactHooks from "eslint-plugin-react-hooks";
 import pluginPromise from "eslint-plugin-promise";
 import json from "@eslint/json";
@@ -54,7 +44,7 @@ export default defineConfig([
       react.configs.flat.recommended,
       react.configs.flat["jsx-runtime"],
       tailwind.configs["flat/recommended"],
-      reactHooks.configs["recommended-latest"],
+      reactHooks.configs.flat["recommended-latest"],
       next.configs.recommended,
       unicorn.configs.recommended,
       pluginPromise.configs["flat/recommended"],
