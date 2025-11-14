@@ -8,7 +8,6 @@
 // yarn dlx @yarnpkg/sdks vscode
 
 import { defineConfig, globalIgnores } from "eslint/config";
-import { fixupConfigRules } from "@eslint/compat";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import react from "eslint-plugin-react";
@@ -28,47 +27,10 @@ import pluginJest from "eslint-plugin-jest";
 import reactHooksExtra from "eslint-plugin-react-hooks-extra";
 import reactRefresh from "eslint-plugin-react-refresh";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
+import next from "@next/eslint-plugin-next";
 
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
-
-const patchedNextConfig = fixupConfigRules(
-  compat.extends("next/core-web-vitals").map((c) => {
-    if (c.plugins && c.plugins.react) {
-      delete c.plugins.react;
-    }
-    if (c.plugins && c.plugins.import) {
-      delete c.plugins.import;
-    }
-    if (c.plugins && c.plugins["jsx-a11y"]) {
-      delete c.plugins["jsx-a11y"];
-    }
-    if (c.plugins && c.plugins["react-hooks"]) {
-      delete c.plugins["react-hooks"];
-    }
-    if (c.settings && c.settings["import/parsers"]) {
-      delete c.settings["import/parsers"];
-    }
-    if (c.settings && c.settings["import/resolver"]) {
-      delete c.settings["import/resolver"];
-    }
-    if (c.settings && c.rules["import/no-anonymous-default-export"]) {
-      delete c.rules["import/no-anonymous-default-export"];
-    }
-    return c;
-  }),
-);
 
 export default defineConfig([
   globalIgnores([".next", ".pnp*", ".yarn", "**/generated/*"]),
@@ -93,7 +55,7 @@ export default defineConfig([
       react.configs.flat["jsx-runtime"],
       tailwind.configs["flat/recommended"],
       reactHooks.configs["recommended-latest"],
-      patchedNextConfig,
+      next.configs.recommended,
       unicorn.configs.recommended,
       pluginPromise.configs["flat/recommended"],
       importX.flatConfigs.recommended,
