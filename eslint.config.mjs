@@ -18,6 +18,9 @@ import reactHooksExtra from "eslint-plugin-react-hooks-extra";
 import reactRefresh from "eslint-plugin-react-refresh";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import next from "@next/eslint-plugin-next";
+import reactYouMightNotNeedAnEffect from "eslint-plugin-react-you-might-not-need-an-effect";
+import noBarrelFiles from "eslint-plugin-no-barrel-files";
+import pluginSecurity from "eslint-plugin-security";
 
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
@@ -52,6 +55,9 @@ export default defineConfig([
       importX.flatConfigs.typescript,
       eslintConfigPrettier,
       reactHooksExtra.configs.recommended,
+      reactYouMightNotNeedAnEffect.configs.recommended,
+      noBarrelFiles.flat,
+      pluginSecurity.configs.recommended,
     ],
 
     settings: {
@@ -80,34 +86,78 @@ export default defineConfig([
 
     rules: {
       // Globally Tuned rules
+      "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-confusing-non-null-assertion": "error",
       "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-duplicate-type-constituents": "off",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-shadow": "error",
+      "@typescript-eslint/no-unnecessary-template-expression": "error",
       "@typescript-eslint/no-unused-expressions": [
         "error",
         { allowShortCircuit: true },
       ],
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/prefer-string-starts-ends-with": "error",
+      "accessor-pairs": "error",
+      "array-callback-return": "error",
+      "dot-notation": "error",
       eqeqeq: ["error", "smart"],
+      "import-x/consistent-type-specifier-style": "error",
       "import-x/no-duplicates": "error",
       "import-x/no-named-as-default": "off",
       "import-x/no-named-as-default-member": "off",
       "import-x/no-self-import": "error",
+      "no-alert": "error",
+      "no-caller": "error",
       "no-console": "error",
+      "no-constructor-return": "error",
       "no-continue": "error",
       "no-else-return": "error",
+      "no-eval": "error",
+      "no-extend-native": "error",
+      "no-extra-bind": "error",
+      "no-iterator": "error",
       "no-lone-blocks": "error",
       "no-lonely-if": "error",
+      "no-loop-func": "error",
       "no-multi-str": "error",
-      "no-template-curly-in-string": "error",
-      "no-sequences": "error",
+      "no-new-func": "error",
+      "no-new-wrappers": "error",
+      "no-object-constructor": "error",
+      "no-octal-escape": "error",
+      "no-promise-executor-return": "error",
+      "no-proto": "error",
       "no-return-await": "error",
+      "no-script-url": "error",
+      "no-self-compare": "error",
+      "no-sequences": "error",
+      "no-template-curly-in-string": "error",
+      "no-undef-init": "error",
+      "no-unmodified-loop-condition": "error",
+      "no-unneeded-ternary": ["error", { defaultAssignment: false }],
+      "no-unreachable-loop": "error",
+      "no-useless-assignment": "error",
+      "no-useless-call": "error",
+      "no-useless-computed-key": "error",
+      "no-useless-constructor": "error",
       "no-useless-rename": "error",
+      "no-useless-return": "error",
       "no-with": "error",
       "object-shorthand": "error",
+      "prefer-arrow-callback": "error",
+      "prefer-destructuring": [
+        "error",
+        {
+          VariableDeclarator: { array: false, object: true },
+          AssignmentExpression: { array: false, object: false },
+        },
+      ],
+      "prefer-exponentiation-operator": "error",
+      "prefer-numeric-literals": "error",
+      "prefer-object-spread": "error",
+      "prefer-regex-literals": "error",
+      "prefer-template": "error",
       "promise/always-return": ["error", { ignoreLastCallback: true }],
       "promise/catch-or-return": ["error", { allowFinally: true }],
       "react/forward-ref-uses-ref": "error",
@@ -116,9 +166,12 @@ export default defineConfig([
       "react/jsx-props-no-spread-multi": "error",
       "react/no-access-state-in-setstate": "error",
       "react/no-unstable-nested-components": "error",
+      "react/void-dom-elements-no-children": "error",
+      "require-atomic-updates": "error",
       "sonarjs/deprecation": "off",
       "sonarjs/todo-tag": "off",
       "unicorn/filename-case": "off",
+      "unicorn/prefer-classlist-toggle": "off",
       "unicorn/prefer-global-this": "off",
       "unicorn/prefer-number-properties": "off",
       "unicorn/prevent-abbreviations": "off",
@@ -129,6 +182,7 @@ export default defineConfig([
       "unicorn/no-useless-switch-case": "off",
       "unicorn/numeric-separators-style": "off",
       "unicorn/switch-case-braces": "off",
+      yoda: ["error", "never", { onlyEquality: true }],
     },
   },
   {
@@ -165,6 +219,7 @@ export default defineConfig([
     extends: [storybook.configs["flat/recommended"]],
     rules: {
       "react-hooks/rules-of-hooks": "off",
+      "sonarjs/pseudo-random": "off",
     },
   },
 ]);
