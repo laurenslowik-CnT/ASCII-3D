@@ -35,9 +35,10 @@ export default defineConfig([
     extends: ["json/recommended"],
   },
   {
-    files: ["**/*.{ts,tsx,js,tsx,mjs}"],
+    files: ["**/*.{ts,tsx,js,jsx,mjs,cjs}"],
     linterOptions: {
       reportUnusedDisableDirectives: "error",
+      reportUnusedInlineConfigs: "error",
     },
     extends: [
       js.configs.recommended,
