@@ -1,5 +1,5 @@
-import type { StorybookConfig } from "@storybook/nextjs";
-import { env as t3Env } from "../src/env";
+import type { StorybookConfig } from "@storybook/nextjs-vite";
+import { env as t3Env } from "../src/env.ts";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
@@ -12,8 +12,12 @@ const config: StorybookConfig = {
   ],
 
   framework: {
-    name: "@storybook/nextjs",
+    name: "@storybook/nextjs-vite",
     options: {},
+  },
+
+  core: {
+    builder: "@storybook/builder-vite",
   },
 
   docs: {},
