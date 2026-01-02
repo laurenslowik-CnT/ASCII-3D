@@ -86,11 +86,26 @@ export default defineConfig([
     },
 
     rules: {
+      // typescript-eslint extending core rules
+      "@typescript-eslint/dot-notation": "error",
+      "@typescript-eslint/no-loop-func": "error",
+      "no-unused-private-class-members": "off",
+      "@typescript-eslint/no-unused-private-class-members": "error",
+      "@typescript-eslint/no-useless-constructor": "error",
+      "@typescript-eslint/prefer-destructuring": [
+        "error",
+        {
+          VariableDeclarator: { array: false, object: true },
+          AssignmentExpression: { array: false, object: false },
+        },
+      ],
+      "@typescript-eslint/return-await": "error",
+
       // Globally Tuned rules
+      "@typescript-eslint/array-type": "error",
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-confusing-non-null-assertion": "error",
       "@typescript-eslint/no-deprecated": "error",
-      "@typescript-eslint/no-duplicate-type-constituents": "off",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-shadow": "error",
       "@typescript-eslint/no-unnecessary-template-expression": "error",
@@ -102,7 +117,6 @@ export default defineConfig([
       "@typescript-eslint/prefer-string-starts-ends-with": "error",
       "accessor-pairs": "error",
       "array-callback-return": "error",
-      "dot-notation": "error",
       eqeqeq: ["error", "smart"],
       "import-x/consistent-type-specifier-style": "error",
       "import-x/no-duplicates": "error",
@@ -121,7 +135,6 @@ export default defineConfig([
       "no-iterator": "error",
       "no-lone-blocks": "error",
       "no-lonely-if": "error",
-      "no-loop-func": "error",
       "no-multi-str": "error",
       "no-new-func": "error",
       "no-new-wrappers": "error",
@@ -129,7 +142,6 @@ export default defineConfig([
       "no-octal-escape": "error",
       "no-promise-executor-return": "error",
       "no-proto": "error",
-      "no-return-await": "error",
       "no-script-url": "error",
       "no-self-compare": "error",
       "no-sequences": "error",
@@ -141,19 +153,11 @@ export default defineConfig([
       "no-useless-assignment": "error",
       "no-useless-call": "error",
       "no-useless-computed-key": "error",
-      "no-useless-constructor": "error",
       "no-useless-rename": "error",
       "no-useless-return": "error",
-      "no-with": "error",
       "object-shorthand": "error",
+      "operator-assignment": "error",
       "prefer-arrow-callback": "error",
-      "prefer-destructuring": [
-        "error",
-        {
-          VariableDeclarator: { array: false, object: true },
-          AssignmentExpression: { array: false, object: false },
-        },
-      ],
       "prefer-exponentiation-operator": "error",
       "prefer-numeric-literals": "error",
       "prefer-object-spread": "error",
