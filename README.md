@@ -27,11 +27,11 @@ yarn
 yarn dev
 ```
 
-## Yarn Plug’n’Play (PnP)
+4. Setup Git hooks
 
-This project uses [Yarn Plug’n’Play (PnP)](https://yarnpkg.com/features/pnp) for dependency management, which eliminates the `node_modules` folder. Some VSCode extensions and language features may not work as expected without additional configuration. See the [Yarn PnP VSCode guide](https://yarnpkg.com/getting-started/editor-sdks) for setup instructions.
-
-> **Note:** Misconfigured VSCode settings can cause issues during Next.js builds. Ensure your editor is correctly set up and you are running the latest stable version of Yarn (currently 4.9.2) `yarn set version stable` before running `yarn build`.
+```sh
+yarn prepare
+```
 
 ## Storybook
 
@@ -43,7 +43,7 @@ This project uses Storybook deployed on Vercel at the following permanent URLs:
 
 as well as on ephemeral URLs for each Pull Request.
 
-To run the SB locally:
+To run Storybook locally:
 
 ```sh
 yarn storybook
@@ -99,3 +99,35 @@ yarn dependency-graph
 ```
 
 will start [skott](https://github.com/antoine-coulon/skott) tool on http://localhost:51024 from where you can have at glance view at both first and third party dependencies.
+
+## Linting
+
+Linting is done via [eslint](https://eslint.org/) and is triggered via yarn:
+
+```sh
+yarn lint
+```
+
+Some linting errors can be fixed automatically by eslint with:
+
+```sh
+yarn lint:fix
+```
+
+Linting is also triggered as a pre-commit action via Husky, and as a build check on pull requests in Github.
+
+## Formatting
+
+Formatting is done via [Prettier](http://prettier.io/) and is triggered via yarn:
+
+```sh
+yarn format
+```
+
+Some formatting errors can be fixed automatically by Prettier with:
+
+```sh
+yarn format:fix
+```
+
+Formatting is also triggered as a pre-commit action via Husky, and as a build check on pull requests in Github.
