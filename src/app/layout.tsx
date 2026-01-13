@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { Theme } from "@radix-ui/themes";
 
 import "./globals.css";
-import "@radix-ui/themes/styles.css";
 
 export const metadata: Metadata = {
   title: "Website name",
@@ -16,9 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        <Theme>{children}</Theme>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
