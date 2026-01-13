@@ -9,6 +9,7 @@ jiti("./src/env");
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   reactCompiler: true,
+  cacheComponents: true,
 };
 
 export default nextConfig;
