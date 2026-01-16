@@ -115,6 +115,10 @@ export default defineConfig([
       ],
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/prefer-string-starts-ends-with": "error",
+      "@typescript-eslint/switch-exhaustiveness-check": [
+        "error",
+        { considerDefaultExhaustiveForUnions: true },
+      ],
       "accessor-pairs": "error",
       "array-callback-return": "error",
       eqeqeq: ["error", "smart"],
