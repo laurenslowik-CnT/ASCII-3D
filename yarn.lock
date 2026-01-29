@@ -3752,6 +3752,7 @@ __metadata:
     react-dom: "npm:19.2.1"
     storybook: "npm:^10.1.10"
     tailwindcss: "npm:^3.4.4"
+    tsc: "npm:^2.0.4"
     typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.50.0"
     vite: "npm:^7.3.0"
@@ -9588,6 +9589,15 @@ __metadata:
   version: 5.9.0
   resolution: "ts-pattern@npm:5.9.0"
   checksum: 10c0/7640db25c39d29b287471b2b82d4f7b4674a02098c6ba4d10fed180adfb07d0e0c71930d9e59dc0d90654145e02fd320af63cf0df3c41e100d4154658a612a0a
+  languageName: node
+  linkType: hard
+
+"tsc@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "tsc@npm:2.0.4"
+  bin:
+    tsc: bin/tsc
+  checksum: 10c0/4651d344891d995e62ab7ca64ce0a8597bbdc2d392886c9956d15caab4dc9bfe86e759d3385b3f97c49fb5294194a161d6812673e3f51e46357c82482f32c3ab
   languageName: node
   linkType: hard
 
