@@ -33,5 +33,5 @@ jobs:
       - name: Format check
         run: yarn format
 
-      - name: Run build
-        run: yarn build
+      - name: Run type check
+        run: yarn typecheck
