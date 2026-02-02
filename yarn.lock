@@ -1996,6 +1996,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tsconfig/next@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@tsconfig/next@npm:2.0.5"
+  checksum: 10c0/d79fdbcbd31a2db896b9506a9344a18ff416d77d15b90658a5f64659d913464e8fb13a56242d4cbb341657dc518c5162c4f9192261ccd62e5cfa8efb05c0dc68
+  languageName: node
+  linkType: hard
+
 "@tybys/wasm-util@npm:^0.10.0":
   version: 0.10.1
   resolution: "@tybys/wasm-util@npm:0.10.1"
@@ -3707,6 +3714,7 @@ __metadata:
     "@storybook/nextjs-vite": "npm:^10.1.10"
     "@t3-oss/env-nextjs": "npm:^0.11.1"
     "@total-typescript/ts-reset": "npm:^0.5.1"
+    "@tsconfig/next": "npm:^2.0.5"
     "@types/eslint-plugin-jsx-a11y": "npm:^6.10.1"
     "@types/eslint-plugin-security": "npm:^3.0.0"
     "@types/node": "npm:^20.14.2"
