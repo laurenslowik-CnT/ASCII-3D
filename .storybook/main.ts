@@ -1,5 +1,5 @@
 import type { StorybookConfig } from "@storybook/nextjs-vite";
-import { env as t3Env } from "../src/env.ts";
+import tsConfigPaths from "vite-tsconfig-paths";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.mdx", "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
@@ -16,21 +16,28 @@ const config: StorybookConfig = {
     options: {},
   },
 
+  docs: {},
+
+  staticDirs: ["../public", "../public-storybook"],
+
+  typescript: {
+    reactDocgen: "react-docgen-typescript",
+  },
+
+  features: {
+    experimentalRSC: true,
+  },
+
   core: {
     builder: "@storybook/builder-vite",
   },
 
-  docs: {},
+  async viteFinal(c) {
+    const { mergeConfig } = await import("vite");
 
-  staticDirs: ["../public"],
-
-  env: (config1) => ({
-    ...config1,
-    ...t3Env,
-  }),
-
-  typescript: {
-    reactDocgen: "react-docgen-typescript",
+    return mergeConfig(c, {
+      plugins: [tsConfigPaths()],
+    });
   },
 };
 export default config;
