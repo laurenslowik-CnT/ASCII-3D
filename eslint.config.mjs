@@ -26,7 +26,13 @@ import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
 
 export default defineConfig([
-  globalIgnores([".next", ".pnp*", ".yarn", "**/generated/*"]),
+  globalIgnores([
+    ".next",
+    ".pnp*",
+    ".yarn",
+    "**/generated/*",
+    "public-storybook/mockServiceWorker.js",
+  ]),
   {
     files: ["**/*.json"],
     ignores: ["package-lock.json"],

@@ -1,5 +1,9 @@
 import type { Preview } from "@storybook/nextjs-vite";
 import "../src/app/globals.css";
+import { initialize, mswLoader } from "msw-storybook-addon";
+import { handlers } from "../src/__mocks__/handlers";
+
+initialize();
 
 const preview: Preview = {
   parameters: {
@@ -17,7 +21,11 @@ const preview: Preview = {
         date: /date$/i,
       },
     },
+    msw: {
+      handlers,
+    },
   },
+  loaders: [mswLoader],
 };
 
 export default preview;

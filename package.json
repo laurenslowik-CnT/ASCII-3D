@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --no-warn-ignored",
     "lint:fix": "eslint --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
@@ -31,6 +31,7 @@
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
     "@eslint/json": "^0.14.0",
+    "@jest/globals": "^30.2.0",
     "@next/eslint-plugin-next": "16.0.10",
     "@storybook/addon-a11y": "^10.1.10",
     "@storybook/addon-designs": "^11.1.0",
@@ -74,6 +75,8 @@
     "globals": "^16.3.0",
     "husky": "^9.0.11",
     "lint-staged": "^16.1.5",
+    "msw": "^2.12.7",
+    "msw-storybook-addon": "^2.0.6",
     "plop": "^4.0.1",
     "postcss": "^8",
     "prettier": "3.6.2",
@@ -91,11 +94,16 @@
       "prettier --write"
     ],
     "*.{ts,tsx,js,jsx}": [
-      "eslint --max-warnings 0"
+      "eslint --max-warnings 0 --no-warn-ignored"
     ]
   },
   "overrides": {
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public-storybook"
+    ]
   }
 }

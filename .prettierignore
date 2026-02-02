@@ -1,2 +1,3 @@
 .yarn
 *.hbs
+public-storybook/mockServiceWorker.js
