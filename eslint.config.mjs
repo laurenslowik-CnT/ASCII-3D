@@ -14,13 +14,12 @@ import json from "@eslint/json";
 import storybook from "eslint-plugin-storybook";
 import testingLibrary from "eslint-plugin-testing-library";
 import pluginJest from "eslint-plugin-jest";
-import reactHooksExtra from "eslint-plugin-react-hooks-extra";
 import reactRefresh from "eslint-plugin-react-refresh";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import next from "@next/eslint-plugin-next";
 import reactYouMightNotNeedAnEffect from "eslint-plugin-react-you-might-not-need-an-effect";
-import noBarrelFiles from "eslint-plugin-no-barrel-files";
 import pluginSecurity from "eslint-plugin-security";
+import eslintReact from "@eslint-react/eslint-plugin";
 
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
@@ -61,10 +60,10 @@ export default defineConfig([
       importX.flatConfigs.recommended,
       importX.flatConfigs.typescript,
       eslintConfigPrettier,
-      reactHooksExtra.configs.recommended,
       reactYouMightNotNeedAnEffect.configs.recommended,
-      noBarrelFiles.flat,
       pluginSecurity.configs.recommended,
+      eslintReact.configs["strict-type-checked"],
+      eslintReact.configs["disable-conflict-eslint-plugin-react"],
     ],
 
     settings: {
@@ -133,6 +132,8 @@ export default defineConfig([
       "import-x/no-named-as-default": "off",
       "import-x/no-named-as-default-member": "off",
       "import-x/no-self-import": "error",
+      "jsx-a11y/html-has-lang": "off",
+      "jsx-a11y/lang": "error",
       "no-alert": "error",
       "no-caller": "error",
       "no-console": "error",
@@ -211,7 +212,10 @@ export default defineConfig([
   },
   {
     files: ["*.config.{js,mjs,cjs,ts}", ".plop/*", ".storybook/*"],
-    extends: [tseslint.configs.disableTypeChecked],
+    extends: [
+      tseslint.configs.disableTypeChecked,
+      eslintReact.configs["disable-type-checked"],
+    ],
   },
   {
     files: ["**/*.test.*"],
