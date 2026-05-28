@@ -8,16 +8,13 @@
   "eslint.debug": true,
   "eslint.enable": true,
   "eslint.format.enable": true,
-  "eslint.nodePath": ".yarn/sdks",
+  "eslint.nodePath": "./node_modules/bin",
   "eslint.useFlatConfig": true,
   "files.associations": {
     "*.css": "tailwindcss"
   },
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs",
+  "prettier.prettierPath": "./node_modules/prettier",
   "search.exclude": {
-    "**/.yarn": true,
-    "**/.pnp.*": true
-  },
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "typescript.tsdk": ".yarn/sdks/typescript/lib"
+    "**/node_modules/**": true
+  }
 }

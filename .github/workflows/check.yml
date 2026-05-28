@@ -16,22 +16,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Use NVM node version
-        uses: actions/setup-node@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          cache: true
+
+      - name: Setup node
+        uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
-          cache: "yarn"
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: pnpm install
 
       - name: Lint check
-        run: yarn lint
+        run: pnpm lint
 
       - name: Format check
-        run: yarn format
+        run: pnpm format
 
       - name: Run type check
-        run: yarn typecheck
+        run: pnpm typecheck
