@@ -1,28 +1,30 @@
-import { defineConfig, globalIgnores } from "eslint/config";
 import js from "@eslint/js";
-import tseslint from "typescript-eslint";
-import react from "eslint-plugin-react";
-import eslintConfigPrettier from "eslint-config-prettier/flat";
-import tailwind from "eslint-plugin-tailwindcss";
-import sonarjs from "eslint-plugin-sonarjs";
-import unicorn from "eslint-plugin-unicorn";
-import jsxA11y from "eslint-plugin-jsx-a11y";
-import { importX } from "eslint-plugin-import-x";
-import reactHooks from "eslint-plugin-react-hooks";
-import pluginPromise from "eslint-plugin-promise";
 import json from "@eslint/json";
-import storybook from "eslint-plugin-storybook";
-import testingLibrary from "eslint-plugin-testing-library";
-import pluginJest from "eslint-plugin-jest";
-import reactRefresh from "eslint-plugin-react-refresh";
-import simpleImportSort from "eslint-plugin-simple-import-sort";
+import eslintReact from "@eslint-react/eslint-plugin";
+import eslintReactKit from "@eslint-react/kit";
 import next from "@next/eslint-plugin-next";
+import vitest from "@vitest/eslint-plugin";
+import { defineConfig, globalIgnores } from "eslint/config";
+import eslintConfigPrettier from "eslint-config-prettier/flat";
+import betterTailwindcss from "eslint-plugin-better-tailwindcss";
+import { importX } from "eslint-plugin-import-x";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+import pluginPromise from "eslint-plugin-promise";
+import reactRefresh from "eslint-plugin-react-refresh";
 import reactYouMightNotNeedAnEffect from "eslint-plugin-react-you-might-not-need-an-effect";
 import pluginSecurity from "eslint-plugin-security";
-import eslintReact from "@eslint-react/eslint-plugin";
-
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import sonarjs from "eslint-plugin-sonarjs";
+import storybook from "eslint-plugin-storybook";
+import testingLibrary from "eslint-plugin-testing-library";
+import unicorn from "eslint-plugin-unicorn";
 import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
+import tseslint from "typescript-eslint";
+
+import { jsxMaxDepth } from "./lint-rules/jsxMaxDepth.ts";
+import { jsxNoDuplicateProps } from "./lint-rules/jsxNoDuplicateProps.ts";
+import { jsxPascalCase } from "./lint-rules/jsxPascalCase.ts";
+import { jsxPropsNoSpreadMulti } from "./lint-rules/jsxPropsNoSpreadMulti.ts";
 
 export default defineConfig([
   globalIgnores([
@@ -31,6 +33,7 @@ export default defineConfig([
     ".yarn",
     "**/generated/*",
     "public-storybook/mockServiceWorker.js",
+    "storybook-static",
   ]),
   {
     files: ["**/*.json"],
@@ -50,25 +53,27 @@ export default defineConfig([
       tseslint.configs.recommendedTypeChecked,
       sonarjs.configs.recommended,
       jsxA11y.flatConfigs.recommended,
-      react.configs.flat.recommended,
-      react.configs.flat["jsx-runtime"],
-      tailwind.configs["flat/recommended"],
-      reactHooks.configs.flat["recommended-latest"],
+      betterTailwindcss.configs.recommended,
       next.configs.recommended,
       unicorn.configs.recommended,
       pluginPromise.configs["flat/recommended"],
       importX.flatConfigs.recommended,
       importX.flatConfigs.typescript,
-      eslintConfigPrettier,
       reactYouMightNotNeedAnEffect.configs.recommended,
       pluginSecurity.configs.recommended,
       eslintReact.configs["strict-type-checked"],
-      eslintReact.configs["disable-conflict-eslint-plugin-react"],
+      eslintReactKit()
+        .use(jsxMaxDepth, { max: 3 })
+        .use(jsxNoDuplicateProps)
+        .use(jsxPascalCase)
+        .use(jsxPropsNoSpreadMulti)
+        .getConfig(),
+      eslintConfigPrettier,
     ],
 
     settings: {
-      tailwindcss: {
-        callees: ["clsx", "cn"],
+      "better-tailwindcss": {
+        entryPoint: "src/app/globals.css",
       },
     },
 
@@ -77,7 +82,6 @@ export default defineConfig([
         ...globals.browser,
         ...globals.node,
       },
-      parser: tsParser,
       ecmaVersion: "latest",
       sourceType: "module",
       parserOptions: {
@@ -107,6 +111,11 @@ export default defineConfig([
       "@typescript-eslint/return-await": "error",
 
       // Globally Tuned rules
+      "@eslint-react/dom-no-string-style-prop": "error",
+      "@eslint-react/globals": "error",
+      "@eslint-react/immutability": "error",
+      "@eslint-react/jsx-no-useless-fragment": "error",
+      "@eslint-react/refs": "error",
       "@typescript-eslint/array-type": "error",
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-confusing-non-null-assertion": "error",
@@ -176,29 +185,28 @@ export default defineConfig([
       "prefer-template": "error",
       "promise/always-return": ["error", { ignoreLastCallback: true }],
       "promise/catch-or-return": ["error", { allowFinally: true }],
-      "react/forward-ref-uses-ref": "error",
-      "react/jsx-no-useless-fragment": "error",
-      "react/jsx-pascal-case": "error",
-      "react/jsx-props-no-spread-multi": "error",
-      "react/no-access-state-in-setstate": "error",
-      "react/no-unstable-nested-components": "error",
-      "react/void-dom-elements-no-children": "error",
       "require-atomic-updates": "error",
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
       "sonarjs/deprecation": "off",
       "sonarjs/todo-tag": "off",
       "unicorn/filename-case": "off",
-      "unicorn/prefer-classlist-toggle": "off",
-      "unicorn/prefer-global-this": "off",
-      "unicorn/prefer-number-properties": "off",
-      "unicorn/prevent-abbreviations": "off",
-      "unicorn/no-array-for-each": "off",
       "unicorn/no-array-callback-reference": "off",
+      "unicorn/no-array-for-each": "off",
       "unicorn/no-array-reduce": "off",
       "unicorn/no-null": "off",
       "unicorn/no-useless-switch-case": "off",
       "unicorn/numeric-separators-style": "off",
+      "unicorn/prefer-classlist-toggle": "off",
+      "unicorn/prefer-global-this": "off",
+      "unicorn/prefer-number-properties": "off",
+      "unicorn/prevent-abbreviations": "off",
       "unicorn/switch-case-braces": "off",
       yoda: ["error", "never", { onlyEquality: true }],
+
+      // Conflicts with prettier-plugin-tailwindcss
+      "better-tailwindcss/enforce-consistent-class-order": "off",
+      "better-tailwindcss/enforce-consistent-line-wrapping": "off",
     },
   },
   {
@@ -219,25 +227,17 @@ export default defineConfig([
   },
   {
     files: ["**/*.test.*"],
-    plugins: { jest: pluginJest },
-    extends: [
-      pluginJest.configs["flat/recommended"],
-      testingLibrary.configs["flat/react"],
-    ],
-    languageOptions: {
-      globals: pluginJest.environments.globals.globals,
-    },
+    extends: [vitest.configs.recommended, testingLibrary.configs["flat/react"]],
     rules: {
-      "jest/prefer-to-have-length": "error",
-      "jest/no-mocks-import": "off",
-      "react-hooks-extra/no-unnecessary-use-prefix": "off",
+      "@eslint-react/no-unnecessary-use-prefix": "off",
+      "sonarjs/pseudo-random": "off",
+      "vitest/prefer-to-have-length": "error",
     },
   },
   {
     files: ["**/*.stories.{jsx,tsx}"],
     extends: [storybook.configs["flat/recommended"]],
     rules: {
-      "react-hooks/rules-of-hooks": "off",
       "sonarjs/pseudo-random": "off",
     },
   },
