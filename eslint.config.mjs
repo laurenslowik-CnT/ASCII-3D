@@ -95,7 +95,7 @@ export default defineConfig([
     },
 
     rules: {
-      // typescript-eslint extending core rules
+      // typescript-eslint improved rules
       "@typescript-eslint/dot-notation": "error",
       "@typescript-eslint/no-loop-func": "error",
       "no-unused-private-class-members": "off",
@@ -109,6 +109,12 @@ export default defineConfig([
         },
       ],
       "@typescript-eslint/return-await": "error",
+      "sonarjs/no-unused-vars": "off",
+      "sonarjs/unused-import": "off",
+
+      // Conflicts with prettier-plugin-tailwindcss
+      "better-tailwindcss/enforce-consistent-class-order": "off",
+      "better-tailwindcss/enforce-consistent-line-wrapping": "off",
 
       // Globally Tuned rules
       "@eslint-react/dom-no-string-style-prop": "error",
@@ -203,10 +209,6 @@ export default defineConfig([
       "unicorn/prevent-abbreviations": "off",
       "unicorn/switch-case-braces": "off",
       yoda: ["error", "never", { onlyEquality: true }],
-
-      // Conflicts with prettier-plugin-tailwindcss
-      "better-tailwindcss/enforce-consistent-class-order": "off",
-      "better-tailwindcss/enforce-consistent-line-wrapping": "off",
     },
   },
   {
@@ -219,7 +221,7 @@ export default defineConfig([
     },
   },
   {
-    files: ["*.config.{js,mjs,cjs,ts}", ".plop/*", ".storybook/*"],
+    files: ["**/*.{mjs,cjs,js}", ".plop/*", ".storybook/*"],
     extends: [
       tseslint.configs.disableTypeChecked,
       eslintReact.configs["disable-type-checked"],
