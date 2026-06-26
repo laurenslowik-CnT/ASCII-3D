@@ -1,0 +1,13 @@
+# Keeps the security Actions themselves up to date — an unpatched scanner is a
+# blind spot, and a mutable action tag is a supply-chain risk. Language layers
+# extend this with their own ecosystems (npm, pip, etc.).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"

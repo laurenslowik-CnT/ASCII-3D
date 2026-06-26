@@ -1,0 +1,51 @@
+# Implemented via https://snyk.io/articles/defending-against-glassworm/
+# Glob broadened from '.cursor/skills/**/*' to '{.cursor,.claude}/skills/**/*'
+# so it covers both Cursor and Claude Code agent skills. (Tested: a generic
+# '**/skills/**/*' does NOT descend into dot-directories, so the dirs must be
+# named explicitly via brace expansion.)
+name: Unicode Security Scan
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+jobs:
+  scan-invisible-chars:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Scan for invisible Unicode attacks
+        id: scan
+        run: bash .github/scripts/scan-unicode.sh
+
+      - name: Comment PR with scan output
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        env:
+          SCAN_EXIT_CODE: ${{ steps.scan.outputs.exit_code }}
+        with:
+          script: |
+            const { pathToFileURL } = require('url');
+            const path = require('path');
+            const mod = await import(
+              pathToFileURL(path.resolve('.github/scripts/comment-scan-results.mjs')).href
+            );
+            await mod.default({ github, context, core });
+
+      - name: Fail on detection
+        if: steps.scan.outputs.exit_code != '0'
+        run: |
+          echo "::error::Invisible Unicode characters detected in source code"
+          echo "::error::This could indicate a Trojan Source or Glassworm-style attack"
+          echo "::error::To investigate, run 'npx anti-trojan-source --files='{.cursor,.claude}/skills/**/*' --json'"
+          exit 1

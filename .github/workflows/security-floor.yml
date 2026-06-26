@@ -1,0 +1,77 @@
+# Security Floor — verifies every secret-exclusion target (ignore files +
+# Claude Code deny rules + Copilot content-exclusion YAML) is in sync with the
+# master list at .github/scripts/secret-patterns.txt, and hasn't been removed,
+# negated, or weakened. The overlay guarantees they're correct at scaffold
+# time; this guarantees they STAY correct.
+name: Security Floor
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-floor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Verify security floor is in sync with master list
+        id: floor
+        run: |
+          set +e
+          node .github/scripts/sync-ignores.mjs --check > floor-output.txt 2>&1
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          cat floor-output.txt
+
+      - name: Comment PR with check result
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- security-floor -->';
+            const ec = '${{ steps.floor.outputs.exit_code }}';
+            const raw = fs.existsSync('floor-output.txt')
+              ? fs.readFileSync('floor-output.txt', 'utf8').trim()
+              : '';
+
+            const body =
+              ec === '0'
+                ? `${marker}\n## Security Floor\n\n✅ Security floor intact — all targets in sync with secret-patterns.txt`
+                : `${marker}\n## Security Floor\n\n❌ Security floor check failed\n\n<details><summary>Details</summary>\n\n\`\`\`\n${raw}\n\`\`\`\n\n</details>`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail on detection
+        if: steps.floor.outputs.exit_code != '0'
+        run: exit 1

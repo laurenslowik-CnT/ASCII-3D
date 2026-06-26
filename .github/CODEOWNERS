@@ -1,0 +1,19 @@
+# Default owner for everything in the repo.
+*                                   @{{org}}/{{team}}
+
+# ── Security floor ──────────────────────────────────────────────────────
+# Changes to these paths require review from the security team. This is the
+# human gate behind the automated security-floor.yml check.
+/.github/                           @{{org}}/{{securityTeam}}
+/.github/workflows/                 @{{org}}/{{securityTeam}}
+/.github/scripts/                   @{{org}}/{{securityTeam}}
+/.claude/settings.json              @{{org}}/{{securityTeam}}
+/docs/security/                     @{{org}}/{{securityTeam}}
+/SECURITY.md                        @{{org}}/{{securityTeam}}
+.gitignore                          @{{org}}/{{securityTeam}}
+.cursorignore                       @{{org}}/{{securityTeam}}
+.codeiumignore                      @{{org}}/{{securityTeam}}
+.aiexclude                          @{{org}}/{{securityTeam}}
+.geminiignore                       @{{org}}/{{securityTeam}}
+.clineignore                        @{{org}}/{{securityTeam}}
+.claudeignore                       @{{org}}/{{securityTeam}}
