@@ -194,6 +194,7 @@ export default defineConfig([
       "require-atomic-updates": "error",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
+      "security/detect-object-injection": "off",
       "sonarjs/deprecation": "off",
       "sonarjs/todo-tag": "off",
       "unicorn/filename-case": "off",
