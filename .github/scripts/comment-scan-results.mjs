@@ -14,8 +14,12 @@ const PASS_LINE = "✅ No Unicode security issues detected";
 const FAIL_LINE = "❌ Unicode security scan reported issues";
 
 function formatLocation(line, column) {
-  if (line == null) return "";
-  if (column == null) return `Line ${line}`;
+  if (line == null) {
+    return "";
+  }
+  if (column == null) {
+    return `Line ${line}`;
+  }
   return `Line ${line}, column ${column}`;
 }
 
@@ -30,7 +34,9 @@ function formatFindings(entry) {
 }
 
 function doesDataPass(data) {
-  if (Array.isArray(data)) return data.length === 0;
+  if (Array.isArray(data)) {
+    return data.length === 0;
+  }
   return data != null && typeof data === "object" && data.success === true;
 }
 
@@ -52,7 +58,9 @@ function formatDetail(data) {
     typeof data === "object" &&
     typeof data.message === "string" &&
     data.success !== true;
-  if (isSimpleMessage) return `\n\n${data.message}`;
+  if (isSimpleMessage) {
+    return `\n\n${data.message}`;
+  }
   return "";
 }
 

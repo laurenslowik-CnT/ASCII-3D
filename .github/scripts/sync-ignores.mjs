@@ -91,7 +91,9 @@ function renderCopilotBlock(patterns) {
 function toClaudeDenyRules(patterns) {
   const rules = [];
   for (const p of patterns) {
-    if (p.startsWith("!")) continue; // eslint-disable-line no-continue
+    if (p.startsWith("!")) {
+      continue; // eslint-disable-line no-continue
+    }
     if (p.endsWith("/")) {
       rules.push(`Read(${p}**)`, `Read(**/${p}**)`);
     } else {
@@ -152,7 +154,9 @@ function reportFailures(failures, checkMode) {
     ? "Security-floor check FAILED:"
     : "sync-ignores FAILED:";
   console.error(`${header}\n`);
-  for (const f of failures) console.error(`  ✗ ${f}`);
+  for (const f of failures) {
+    console.error(`  ✗ ${f}`);
+  }
   if (checkMode) {
     console.error(
       `\nRun \`node .github/scripts/sync-ignores.mjs\` to regenerate, then commit the result.`,
@@ -195,7 +199,9 @@ async function main() {
     try {
       if (checkMode) {
         const problem = await _checkTarget(target, patterns);
-        if (problem) failures.push(problem);
+        if (problem) {
+          failures.push(problem);
+        }
       } else {
         await syncTarget(target, patterns);
       }

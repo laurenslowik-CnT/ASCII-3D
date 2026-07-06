@@ -96,6 +96,12 @@ export default defineConfig([
 
     rules: {
       // typescript-eslint improved rules
+      "@typescript-eslint/consistent-type-assertions": [
+        "error",
+        {
+          assertionStyle: "never",
+        },
+      ],
       "@typescript-eslint/dot-notation": "error",
       "@typescript-eslint/no-loop-func": "error",
       "no-unused-private-class-members": "off",
@@ -149,6 +155,16 @@ export default defineConfig([
       "import-x/no-self-import": "error",
       "jsx-a11y/html-has-lang": "off",
       "jsx-a11y/lang": "error",
+      "jsx-a11y/no-redundant-roles": [
+        "error",
+        {
+          ul: ["list"],
+        },
+      ],
+      "max-lines": [
+        "error",
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
       "no-alert": "error",
       "no-caller": "error",
       "no-console": "error",
@@ -191,6 +207,44 @@ export default defineConfig([
       "prefer-template": "error",
       "promise/always-return": ["error", { ignoreLastCallback: true }],
       "promise/catch-or-return": ["error", { allowFinally: true }],
+      "better-tailwindcss/enforce-canonical-classes": [
+        "error",
+        {
+          ignore: [
+            String.raw`border-([btlr]-)?\[length:var\(--border-width-[\w-]+\)\]`,
+          ],
+        },
+      ],
+      "better-tailwindcss/no-restricted-classes": [
+        "error",
+        {
+          restrict: [
+            {
+              pattern: String.raw`p[xytrblse]?-\[\d+(\.\d+)?px\]$`,
+              message:
+                "Use a spacing token instead of an explicit pixel value for padding.",
+            },
+            {
+              pattern: String.raw`-?m[xytrblse]?-\[\d+(\.\d+)?px\]$`,
+              message:
+                "Use a spacing token instead of an explicit pixel value for margin.",
+            },
+            {
+              pattern: String.raw`(w|h|size|min-w|max-w|min-h|max-h)-\[\d+(\.\d+)?px\]$`,
+              message:
+                "Use a spacing token instead of an explicit pixel value for size.",
+            },
+          ],
+        },
+      ],
+      "better-tailwindcss/no-unknown-classes": [
+        "error",
+        {
+          ignore: ["themelight", "themedark"],
+        },
+      ],
+      complexity: ["error", 15],
+      curly: ["error", "all"],
       "require-atomic-updates": "error",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
@@ -235,6 +289,7 @@ export default defineConfig([
       "@eslint-react/no-unnecessary-use-prefix": "off",
       "sonarjs/pseudo-random": "off",
       "vitest/prefer-to-have-length": "error",
+      "@typescript-eslint/consistent-type-assertions": "off",
     },
   },
   {
@@ -242,6 +297,7 @@ export default defineConfig([
     extends: [storybook.configs["flat/recommended"]],
     rules: {
       "sonarjs/pseudo-random": "off",
+      "@typescript-eslint/consistent-type-assertions": "off",
     },
   },
 ]);

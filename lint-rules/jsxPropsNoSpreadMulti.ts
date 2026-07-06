@@ -10,8 +10,10 @@ export function jsxPropsNoSpreadMulti(): RuleFunction {
 
       // ─── Check each spread attribute ───────────────
       for (const attr of node.attributes) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison,no-continue
-        if (attr.type !== "JSXSpreadAttribute") continue;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+        if (attr.type !== "JSXSpreadAttribute") {
+          continue; // eslint-disable-line no-continue
+        }
 
         // › Extract spread identifier name
         const argument = ast.unwrap(attr.argument);

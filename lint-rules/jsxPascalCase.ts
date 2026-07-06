@@ -21,7 +21,9 @@ export function jsxPascalCase(
       const name = node.name;
       // › Guard: must be simple identifier
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-      if (name.type !== "JSXIdentifier") return;
+      if (name.type !== "JSXIdentifier") {
+        return;
+      }
       const componentName = name.name;
       // ─── Handle leading underscore ───────────────
       if (componentName.startsWith("_")) {
@@ -36,8 +38,12 @@ export function jsxPascalCase(
       // › Guard: ignore DOM elements (lowercase)
       const firstChar = componentName[0];
       // eslint-disable-next-line sonarjs/different-types-comparison
-      if (firstChar === undefined) return;
-      if (firstChar === firstChar.toLowerCase()) return;
+      if (firstChar === undefined) {
+        return;
+      }
+      if (firstChar === firstChar.toLowerCase()) {
+        return;
+      }
       // ─── Handle all-caps ─────────────────────────
       if (componentName === componentName.toUpperCase()) {
         if (!allowAllCaps) {

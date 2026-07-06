@@ -17,10 +17,14 @@ export function jsxNoDuplicateProps(
       const seen = new Map<string, string>();
       // ─── Check each attribute ──────────────────────
       for (const attr of node.attributes) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison,no-continue
-        if (attr.type !== "JSXAttribute") continue;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison,no-continue
-        if (attr.name.type !== "JSXIdentifier") continue;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+        if (attr.type !== "JSXAttribute") {
+          continue; // eslint-disable-line no-continue
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+        if (attr.name.type !== "JSXIdentifier") {
+          continue; // eslint-disable-line no-continue
+        }
         const name = ignoreCase ? attr.name.name.toLowerCase() : attr.name.name;
         // › Report duplicate
         if (seen.has(name)) {
