@@ -26,3 +26,9 @@ updates:
       radix:
         patterns:
           - "@radix-ui/*"
+      storybook:
+        patterns:
+          - "storybook"
+          - "@storybook/*"
+          - "storybook-addon-*"
+          - "eslint-plugin-storybook"
