@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^5.8.8",
-    "@eslint-react/kit": "^5.8.9",
+    "@eslint-react/kit": "^5.18.1",
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^2.0.0",
     "@next/eslint-plugin-next": "16.2.12",
