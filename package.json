@@ -31,7 +31,7 @@
     "@eslint-react/eslint-plugin": "^5.8.8",
     "@eslint-react/kit": "^5.18.1",
     "@eslint/js": "^10.0.1",
-    "@eslint/json": "^2.0.0",
+    "@eslint/json": "^2.0.1",
     "@next/eslint-plugin-next": "16.2.12",
     "@storybook/addon-a11y": "^10.1.10",
     "@storybook/addon-designs": "^11.1.0",
