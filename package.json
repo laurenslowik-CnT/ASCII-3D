@@ -22,7 +22,7 @@
   "dependencies": {
     "@t3-oss/env-nextjs": "^0.13.11",
     "clsx": "^2.1.1",
-    "next": "16.2.6",
+    "next": "16.2.12",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "zod": "^4.4.3"
@@ -32,7 +32,7 @@
     "@eslint-react/kit": "^5.8.9",
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^2.0.0",
-    "@next/eslint-plugin-next": "16.2.6",
+    "@next/eslint-plugin-next": "16.2.12",
     "@storybook/addon-a11y": "^10.1.10",
     "@storybook/addon-designs": "^11.1.0",
     "@storybook/addon-docs": "^10.1.10",
