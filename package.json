@@ -39,7 +39,7 @@
     "@storybook/addon-links": "^10.1.10",
     "@storybook/builder-vite": "^10.1.10",
     "@storybook/nextjs-vite": "^10.1.10",
-    "@tailwindcss/postcss": "^4.3.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@total-typescript/ts-reset": "^0.6.1",
