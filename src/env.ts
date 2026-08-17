@@ -3,18 +3,21 @@ import * as z from "zod";
 
 export const env = createEnv({
   server: {
-    // EXAMPLE_SERVER_VAR: z.string().url(),
+    MAPBOX_ACCESS_TOKEN: z.string().min(1),
+    GOOGLE_MAPS_API_KEY: z.string().min(1),
   },
   client: {
-    // NEXT_PUBLIC_EXAMPLE_CLIENT_VAR: z.string().min(1),
     NEXT_PUBLIC_SITE_URL: z.string().optional(),
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1),
   },
-  // For Next.js >= 13.4.4, we only need to destructure client variables:
   runtimeEnv: {
-    // NEXT_PUBLIC_EXAMPLE_CLIENT_VAR: process.env.NEXT_PUBLIC_EXAMPLE_CLIENT_VAR,
+    MAPBOX_ACCESS_TOKEN: process.env.MAPBOX_ACCESS_TOKEN,
+    GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
     NEXT_PUBLIC_SITE_URL:
       process.env.NEXT_PUBLIC_VERCEL_URL ||
       process.env.NEXT_PUBLIC_SITE_URL ||
       "localhost:3000",
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
   },
 });
