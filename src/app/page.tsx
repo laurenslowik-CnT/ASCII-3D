@@ -1,3 +1,5 @@
+import { Navigator } from "@/components/navigator/Navigator";
+
 export default function Home() {
-  return <main>Hello, world.</main>;
+  return <Navigator />;
 }
