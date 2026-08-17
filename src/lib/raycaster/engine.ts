@@ -48,15 +48,41 @@ function initDDA(
   };
 }
 
-function stepDDA(state: DDAState): { face: "NS" | "EW" } {
+function stepDDA(state: DDAState): "EW" | "NS" {
   if (state.sideDistX < state.sideDistY) {
     state.sideDistX += state.deltaDistX;
     state.mapX += state.stepX;
-    return { face: "EW" };
+    return "EW";
   }
   state.sideDistY += state.deltaDistY;
   state.mapY += state.stepY;
-  return { face: "NS" };
+  return "NS";
+}
+
+function resolveHit(
+  state: DDAState,
+  face: "EW" | "NS",
+  cell: Cell,
+  mapX: number,
+  mapY: number,
+): RayHit | null {
+  const distance =
+    face === "EW"
+      ? state.sideDistX - state.deltaDistX
+      : state.sideDistY - state.deltaDistY;
+  if (distance > MAX_RENDER_DIST) {
+    return null;
+  }
+  return { distance, face, cell, mapX, mapY };
+}
+
+function isOutOfBounds(
+  mapX: number,
+  mapY: number,
+  cols: number,
+  rows: number,
+): boolean {
+  return mapX < 0 || mapY < 0 || mapX >= cols || mapY >= rows;
 }
 
 export function castRay(
@@ -66,28 +92,19 @@ export function castRay(
 ): RayHit | null {
   const rows = grid.length;
   const cols = grid[0]?.length ?? 0;
-  const rayDirX = Math.cos(angle);
-  const rayDirY = Math.sin(angle);
-  const state = initDDA(pos, rayDirX, rayDirY);
+  const state = initDDA(pos, Math.cos(angle), Math.sin(angle));
 
   for (let steps = 0; steps < MAX_RENDER_DIST * 2; steps++) {
-    const { face } = stepDDA(state);
+    const face = stepDDA(state);
     const { mapX, mapY } = state;
 
-    if (mapX < 0 || mapY < 0 || mapX >= cols || mapY >= rows) {
+    if (isOutOfBounds(mapX, mapY, cols, rows)) {
       return null;
     }
 
     const cell = grid[mapY][mapX];
     if (cell.type === "building") {
-      const distance =
-        face === "EW"
-          ? state.sideDistX - state.deltaDistX
-          : state.sideDistY - state.deltaDistY;
-      if (distance > MAX_RENDER_DIST) {
-        return null;
-      }
-      return { distance, face, cell, mapX, mapY };
+      return resolveHit(state, face, cell, mapX, mapY);
     }
   }
 
