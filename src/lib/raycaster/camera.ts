@@ -2,11 +2,11 @@
 import type { Grid } from "@/lib/grid/types";
 
 export type Camera = {
-  x: number; // grid col (float)
-  y: number; // grid row (float)
-  angle: number; // radians, 0 = east
-  fov: number; // radians
-  pitch: number; // screen-row offset: positive = looking up, negative = looking down
+  x: number;
+  y: number;
+  angle: number;
+  fov: number;
+  pitch: number;
 };
 
 const MOVE_SPEED = 0.05;
@@ -21,15 +21,10 @@ export function createCamera(x: number, y: number, angle: number): Camera {
 function isPassable(x: number, y: number, grid: Grid): boolean {
   const col = Math.floor(x);
   const row = Math.floor(y);
-  if (
-    row < 0 ||
-    row >= grid.length ||
-    col < 0 ||
-    col >= (grid[0]?.length ?? 0)
-  ) {
+  if (row < 0 || row >= grid.rows || col < 0 || col >= grid.cols) {
     return false;
   }
-  return grid[row][col].type !== "building";
+  return grid.data[row * grid.cols + col] === 0;
 }
 
 export function moveCamera(

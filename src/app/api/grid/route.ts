@@ -67,8 +67,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const grid = buildGrid(allBuildings, meta);
 
+    // Send as a flat heights array — ~20x smaller than Cell[][] JSON
     return NextResponse.json(
-      { grid, meta },
+      { heights: [...grid.data], meta },
       {
         headers: {
           "Cache-Control": `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate`,

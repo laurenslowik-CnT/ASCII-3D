@@ -1,11 +1,11 @@
 // src/lib/raycaster/engine.ts
-import type { Cell, Grid } from "@/lib/grid/types";
+import type { Grid } from "@/lib/grid/types";
 import { MAX_RENDER_DIST } from "@/lib/raycaster/chars";
 
 export type RayHit = {
   distance: number;
   face: "NS" | "EW";
-  cell: Cell;
+  cellHeight: number;
   mapX: number;
   mapY: number;
 };
@@ -62,7 +62,7 @@ function stepDDA(state: DDAState): "EW" | "NS" {
 function resolveHit(
   state: DDAState,
   face: "EW" | "NS",
-  cell: Cell,
+  cellHeight: number,
   mapX: number,
   mapY: number,
 ): RayHit | null {
@@ -73,16 +73,7 @@ function resolveHit(
   if (distance > MAX_RENDER_DIST) {
     return null;
   }
-  return { distance, face, cell, mapX, mapY };
-}
-
-function isOutOfBounds(
-  mapX: number,
-  mapY: number,
-  cols: number,
-  rows: number,
-): boolean {
-  return mapX < 0 || mapY < 0 || mapX >= cols || mapY >= rows;
+  return { distance, face, cellHeight, mapX, mapY };
 }
 
 export function castRay(
@@ -90,21 +81,20 @@ export function castRay(
   angle: number,
   grid: Grid,
 ): RayHit | null {
-  const rows = grid.length;
-  const cols = grid[0]?.length ?? 0;
+  const { rows, cols, data } = grid;
   const state = initDDA(pos, Math.cos(angle), Math.sin(angle));
 
   for (let steps = 0; steps < MAX_RENDER_DIST * 2; steps++) {
     const face = stepDDA(state);
     const { mapX, mapY } = state;
 
-    if (isOutOfBounds(mapX, mapY, cols, rows)) {
+    if (mapX < 0 || mapY < 0 || mapX >= cols || mapY >= rows) {
       return null;
     }
 
-    const cell = grid[mapY][mapX];
-    if (cell.type === "building") {
-      return resolveHit(state, face, cell, mapX, mapY);
+    const cellHeight = data[mapY * cols + mapX] ?? 0;
+    if (cellHeight > 0) {
+      return resolveHit(state, face, cellHeight, mapX, mapY);
     }
   }
 
@@ -116,10 +106,10 @@ export type FrameData = {
   wallTop: number;
   distance: number;
   face: "NS" | "EW";
-  cell: Cell;
-  wallU: number; // 0..1 hit position along the wall face (for texture U)
-  heightInCells: number; // building height in grid units (for texture V tiling)
-  rayAngle: number; // direction of this column's ray (for floor casting)
+  cellHeight: number;
+  wallU: number;
+  heightInCells: number;
+  rayAngle: number;
 };
 
 export function buildFrameData(
@@ -139,7 +129,7 @@ export function buildFrameData(
     }
 
     const correctedDist = hit.distance * Math.cos(rayAngle - camera.angle);
-    const heightInCells = hit.cell.height / cellSize;
+    const heightInCells = hit.cellHeight / cellSize;
     const wallHeight = Math.min(
       rows * 2,
       Math.floor((rows * heightInCells) / correctedDist),
@@ -156,7 +146,7 @@ export function buildFrameData(
       wallTop,
       distance: correctedDist,
       face: hit.face,
-      cell: hit.cell,
+      cellHeight: hit.cellHeight,
       wallU,
       heightInCells,
       rayAngle,

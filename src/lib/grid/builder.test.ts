@@ -21,28 +21,28 @@ describe("rasteriseBuilding", () => {
         [40.7581, -73.9849],
       ],
     ];
-    const grid: Grid = Array.from({ length: 50 }, () =>
-      Array.from({ length: 50 }, () => ({
-        type: "road" as const,
-        height: 0,
-      })),
-    );
+    const grid: Grid = {
+      data: new Int16Array(50 * 50),
+      rows: 50,
+      cols: 50,
+    };
     rasteriseBuilding(grid, polygon, 20, META);
-    const buildingCells = grid.flat().filter((c) => c.type === "building");
+    const buildingCells = [...grid.data].filter((h) => h > 0);
     expect(buildingCells.length).toBeGreaterThan(0);
-    expect(buildingCells[0]?.height).toBe(20);
+    expect(buildingCells[0]).toBe(20);
   });
 });
 
 describe("buildGrid", () => {
   it("returns a grid of the correct dimensions", () => {
     const grid = buildGrid([], META);
-    expect(grid).toHaveLength(50);
-    expect(grid[0]).toHaveLength(50);
+    expect(grid.rows).toBe(50);
+    expect(grid.cols).toBe(50);
+    expect(grid.data).toHaveLength(50 * 50);
   });
 
-  it("all cells default to empty when no buildings", () => {
+  it("all cells default to 0 (empty) when no buildings", () => {
     const grid = buildGrid([], META);
-    expect(grid.flat().every((c) => c.type === "empty")).toBe(true);
+    expect(grid.data.every((h) => h === 0)).toBe(true);
   });
 });

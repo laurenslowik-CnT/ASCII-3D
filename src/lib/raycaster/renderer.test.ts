@@ -36,7 +36,7 @@ describe("renderFrame", () => {
         wallTop: 2,
         distance: 3,
         face: "NS",
-        cell: { type: "building", height: 10 },
+        cellHeight: 10,
         wallU: 0.5,
         heightInCells: 2.5,
         rayAngle: 0,

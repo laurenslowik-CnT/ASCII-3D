@@ -9,7 +9,6 @@ import {
   OVERHEAD_BUILDING,
   OVERHEAD_CAMERA,
   OVERHEAD_EMPTY,
-  OVERHEAD_ROAD,
   OVERHEAD_ROUTE,
 } from "@/lib/raycaster/chars";
 
@@ -37,15 +36,9 @@ function cellChar(
   if (routeSet.has(`${row},${col}`)) {
     return { char: OVERHEAD_ROUTE, colour: "#00aa00" };
   }
-  const cell = grid[row]?.[col];
-  if (!cell) {
-    return { char: OVERHEAD_EMPTY, colour: "#111" };
-  }
-  if (cell.type === "building") {
+  const h = grid.data[row * grid.cols + col] ?? 0;
+  if (h > 0) {
     return { char: OVERHEAD_BUILDING, colour: "#555" };
-  }
-  if (cell.type === "road") {
-    return { char: OVERHEAD_ROAD, colour: "#222" };
   }
   return { char: OVERHEAD_EMPTY, colour: "#111" };
 }
@@ -63,10 +56,8 @@ export function OverheadCanvas({ grid, camera, routeCells }: Props) {
       return;
     }
 
-    const rows = grid.length;
-    const cols = grid[0]?.length ?? 0;
-    canvas.width = cols * CELL_PX;
-    canvas.height = rows * CELL_PX;
+    canvas.width = grid.cols * CELL_PX;
+    canvas.height = grid.rows * CELL_PX;
 
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -76,8 +67,8 @@ export function OverheadCanvas({ grid, camera, routeCells }: Props) {
     const camRow = Math.floor(camera.y);
     const camCol = Math.floor(camera.x);
 
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
+    for (let row = 0; row < grid.rows; row++) {
+      for (let col = 0; col < grid.cols; col++) {
         const { char, colour } = cellChar(
           row,
           col,

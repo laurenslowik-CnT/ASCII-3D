@@ -3,9 +3,18 @@ import { describe, expect, it } from "vitest";
 import type { Grid } from "@/lib/grid/types";
 import { createCamera, moveCamera, rotateCamera } from "@/lib/raycaster/camera";
 
-const OPEN_GRID: Grid = Array.from({ length: 20 }, () =>
-  Array.from({ length: 20 }, () => ({ type: "road" as const, height: 0 })),
-);
+const OPEN_GRID: Grid = {
+  data: new Int16Array(20 * 20), // all zeros = passable
+  rows: 20,
+  cols: 20,
+};
+
+// Grid with a wall at col 11 across all rows
+const wallData = new Int16Array(20 * 20);
+for (let r = 0; r < 20; r++) {
+  wallData[r * 20 + 11] = 10;
+}
+const WALL_GRID: Grid = { data: wallData, rows: 20, cols: 20 };
 
 describe("moveCamera", () => {
   it("moves forward along the camera angle", () => {
@@ -16,13 +25,8 @@ describe("moveCamera", () => {
   });
 
   it("does not move into a building cell", () => {
-    const wallGrid: Grid = OPEN_GRID.map((row) =>
-      row.map((cell, c) =>
-        c === 11 ? { type: "building" as const, height: 10 } : cell,
-      ),
-    );
     const cam = createCamera(10, 10, 0);
-    const moved = moveCamera(cam, "forward", wallGrid);
+    const moved = moveCamera(cam, "forward", WALL_GRID);
     expect(Math.floor(moved.x)).toBeLessThan(11);
   });
 });
@@ -45,5 +49,10 @@ describe("createCamera", () => {
   it("sets fov to PI/3 by default", () => {
     const cam = createCamera(5, 5, 0);
     expect(cam.fov).toBeCloseTo(Math.PI / 3);
+  });
+
+  it("sets pitch to 0 by default", () => {
+    const cam = createCamera(5, 5, 0);
+    expect(cam.pitch).toBe(0);
   });
 });

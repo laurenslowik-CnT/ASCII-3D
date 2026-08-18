@@ -17,20 +17,15 @@ import { ViewToggle } from "./ViewToggle";
 
 const latLngSchema = z.object({ lat: z.number(), lng: z.number() });
 
-const cellSchema = z.object({
-  type: z.enum(["road", "building", "empty"]),
-  height: z.number(),
-});
-
 const gridMetaSchema = z.object({
   origin: latLngSchema,
-  rows: z.number(),
-  cols: z.number(),
-  cellSize: z.number(),
+  rows: z.number().int().positive(),
+  cols: z.number().int().positive(),
+  cellSize: z.number().positive(),
 });
 
 const gridResponseSchema = z.object({
-  grid: z.array(z.array(cellSchema)),
+  heights: z.array(z.number().int()),
   meta: gridMetaSchema,
 });
 
@@ -41,7 +36,13 @@ async function loadGrid(): Promise<{ grid: Grid; meta: GridMeta }> {
   if (!res.ok) {
     throw new Error(`Grid fetch failed: ${res.status}`);
   }
-  return gridResponseSchema.parse(await res.json());
+  const { heights, meta } = gridResponseSchema.parse(await res.json());
+  const grid: Grid = {
+    data: Int16Array.from(heights),
+    rows: meta.rows,
+    cols: meta.cols,
+  };
+  return { grid, meta };
 }
 
 async function geocodeOne(address: string): Promise<LatLng> {

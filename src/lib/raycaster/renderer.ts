@@ -66,11 +66,11 @@ function drawColumn(
     heightInCells,
     distance,
     face,
-    cell,
+    cellHeight,
     rayAngle,
   } = data;
   const wallBottom = wallTop + charHeight;
-  const tex = selectTexture(cell.height);
+  const tex = selectTexture(cellHeight);
 
   for (let row = 0; row < rows; row++) {
     if (row >= wallTop && row < wallBottom) {

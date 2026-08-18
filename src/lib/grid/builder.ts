@@ -1,6 +1,6 @@
 // src/lib/grid/builder.ts
 import { latLngToCell } from "@/lib/grid/coords";
-import type { Building, Cell, Grid, GridMeta } from "@/lib/grid/types";
+import type { Building, Grid, GridMeta } from "@/lib/grid/types";
 
 function edgeCrossesRay(
   px: number,
@@ -82,6 +82,7 @@ export function rasteriseBuilding(
   const metresPerDegreeLat = 111320;
   const metresPerDegreeLng =
     111320 * Math.cos((meta.origin.lat * Math.PI) / 180);
+  const h = Math.max(1, Math.round(height));
 
   for (let row = clampedMinRow; row <= clampedMaxRow; row++) {
     for (let col = clampedMinCol; col <= clampedMaxCol; col++) {
@@ -91,22 +92,18 @@ export function rasteriseBuilding(
         meta.origin.lng + ((col + 0.5) * meta.cellSize) / metresPerDegreeLng;
 
       if (pointInPolygon(cellLat, cellLng, outerRing)) {
-        const gridRow = grid[row];
-        if (gridRow) {
-          gridRow[col] = { type: "building", height };
-        }
+        grid.data[row * grid.cols + col] = h;
       }
     }
   }
 }
 
 export function buildGrid(buildings: Building[], meta: GridMeta): Grid {
-  const grid: Grid = Array.from({ length: meta.rows }, () =>
-    Array.from({ length: meta.cols }, (): Cell => ({
-      type: "empty",
-      height: 0,
-    })),
-  );
+  const grid: Grid = {
+    data: new Int16Array(meta.rows * meta.cols), // zeros = empty
+    rows: meta.rows,
+    cols: meta.cols,
+  };
 
   for (const building of buildings) {
     rasteriseBuilding(grid, building.polygonLatLng, building.height, meta);

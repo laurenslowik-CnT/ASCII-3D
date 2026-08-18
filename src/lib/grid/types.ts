@@ -9,14 +9,13 @@ export type BBox = {
   west: number;
 };
 
-export type CellType = "road" | "building" | "empty";
-
-export type Cell = {
-  type: CellType;
-  height: number; // metres, 0 for non-buildings
+// Flat row-major grid. Value at [row * cols + col] = building height in
+// metres (integer). 0 means empty / passable.
+export type Grid = {
+  data: Int16Array;
+  rows: number;
+  cols: number;
 };
-
-export type Grid = Cell[][];
 
 export type GridMeta = {
   origin: LatLng; // lat/lng of cell [0][0]
@@ -40,7 +39,7 @@ export type CityConfig = {
   name: string;
   bbox: BBox;
   center: LatLng;
-  cellSize: number; // metres per cell, e.g. 4
+  cellSize: number;
 };
 
 export type Building = {
