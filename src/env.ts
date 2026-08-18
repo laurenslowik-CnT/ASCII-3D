@@ -3,7 +3,6 @@ import * as z from "zod";
 
 export const env = createEnv({
   server: {
-    MAPBOX_ACCESS_TOKEN: z.string().min(1),
     GOOGLE_MAPS_API_KEY: z.string().min(1),
   },
   client: {
@@ -11,7 +10,6 @@ export const env = createEnv({
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1),
   },
   runtimeEnv: {
-    MAPBOX_ACCESS_TOKEN: process.env.MAPBOX_ACCESS_TOKEN,
     GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
     NEXT_PUBLIC_SITE_URL:
       process.env.NEXT_PUBLIC_VERCEL_URL ||

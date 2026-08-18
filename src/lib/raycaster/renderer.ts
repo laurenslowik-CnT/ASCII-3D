@@ -1,69 +1,88 @@
 // src/lib/raycaster/renderer.ts
 import {
-  distanceBand,
-  FLOOR,
+  brightnessToChar,
+  floorColour,
   SKY,
-  WALL_EW,
-  WALL_NS,
+  skyColour,
   wallColour,
 } from "@/lib/raycaster/chars";
 import type { FrameData } from "@/lib/raycaster/engine";
+import {
+  FLOOR_TEXTURE,
+  sampleTexture,
+  selectTexture,
+} from "@/lib/raycaster/textures";
 
-const CHAR_W = 10; // px per character column
-const CHAR_H = 16; // px per character row
+const CHAR_W = 5;
+const CHAR_H = 9;
 
 type Ctx = CanvasRenderingContext2D;
 
-function drawSky(ctx: Ctx, x: number, row: number, totalRows: number): void {
-  const band = Math.min(4, Math.floor((row / totalRows) * 5));
-  ctx.fillStyle = "#111";
-  ctx.fillText(SKY[band], x, row * CHAR_H);
-}
-
-function drawWall(ctx: Ctx, data: FrameData, x: number, row: number): void {
-  const band = distanceBand(data.distance);
-  const chars = data.face === "NS" ? WALL_NS : WALL_EW;
-  ctx.fillStyle = wallColour(data.distance);
-  ctx.fillText(chars[band], x, row * CHAR_H);
-}
-
-function drawFloor(
+function drawFloorRow(
   ctx: Ctx,
   x: number,
   row: number,
-  wallBottom: number,
-  rows: number,
+  rayAngle: number,
+  horizon: number,
+  camX: number,
+  camY: number,
 ): void {
-  const floorRow = row - wallBottom;
-  const floorBand = Math.min(
-    4,
-    Math.floor((floorRow / Math.max(1, rows - wallBottom)) * 5),
-  );
-  ctx.fillStyle = "#222";
-  ctx.fillText(FLOOR[floorBand], x, row * CHAR_H);
-}
-
-function drawColumn(ctx: Ctx, data: FrameData, x: number, rows: number): void {
-  const wallBottom = data.wallTop + data.charHeight;
-  for (let row = 0; row < rows; row++) {
-    if (row < data.wallTop) {
-      const skyBand = Math.min(
-        4,
-        Math.floor((row / Math.max(1, data.wallTop)) * 5),
-      );
-      ctx.fillStyle = "#111";
-      ctx.fillText(SKY[skyBand], x, row * CHAR_H);
-    } else if (row < wallBottom) {
-      drawWall(ctx, data, x, row);
-    } else {
-      drawFloor(ctx, x, row, wallBottom, rows);
-    }
+  const relRow = row - horizon;
+  if (relRow <= 0) {
+    return;
   }
+  const posZ = Math.max(1, horizon);
+  const floorDist = posZ / relRow;
+  const wx = camX + floorDist * Math.cos(rayAngle);
+  const wy = camY + floorDist * Math.sin(rayAngle);
+  const u = ((wx % 1) + 1) % 1;
+  const v = ((wy % 1) + 1) % 1;
+  const raw = sampleTexture(FLOOR_TEXTURE, u, v);
+  const dimmed = Math.floor(raw * Math.max(0.05, 1 - floorDist / 18));
+  const band = Math.min(4, Math.floor(floorDist / 4));
+  ctx.fillStyle = floorColour(band);
+  ctx.fillText(brightnessToChar(dimmed), x, row * CHAR_H);
 }
 
-function drawEmptyColumn(ctx: Ctx, x: number, rows: number): void {
+function drawSkyRow(ctx: Ctx, x: number, row: number, horizon: number): void {
+  const band = Math.min(4, Math.floor((row / Math.max(1, horizon)) * 5));
+  ctx.fillStyle = skyColour();
+  ctx.fillText(SKY[band], x, row * CHAR_H);
+}
+
+function drawColumn(
+  ctx: Ctx,
+  data: FrameData,
+  x: number,
+  rows: number,
+  camX: number,
+  camY: number,
+  horizon: number,
+): void {
+  const {
+    wallTop,
+    charHeight,
+    wallU,
+    heightInCells,
+    distance,
+    face,
+    cell,
+    rayAngle,
+  } = data;
+  const wallBottom = wallTop + charHeight;
+  const tex = selectTexture(cell.height);
+
   for (let row = 0; row < rows; row++) {
-    drawSky(ctx, x, row, rows);
+    if (row >= wallTop && row < wallBottom) {
+      const v = ((row - wallTop) / Math.max(1, charHeight)) * heightInCells;
+      const brightness = sampleTexture(tex, wallU, v);
+      ctx.fillStyle = wallColour(distance, face);
+      ctx.fillText(brightnessToChar(brightness), x, row * CHAR_H);
+    } else if (row > horizon) {
+      drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
+    } else {
+      drawSkyRow(ctx, x, row, horizon);
+    }
   }
 }
 
@@ -72,6 +91,11 @@ export function renderFrame(
   canvas: HTMLCanvasElement,
   cols: number,
   rows: number,
+  camX = 0,
+  camY = 0,
+  pitch = 0,
+  camAngle = 0,
+  camFov = Math.PI / 3,
 ): void {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -81,15 +105,26 @@ export function renderFrame(
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.font = `${CHAR_H}px monospace`;
+  ctx.textBaseline = "top";
+
+  const horizon = rows / 2 + pitch;
 
   for (let col = 0; col < cols; col++) {
     const data = frameData[col];
     const x = col * CHAR_W;
+    const rayAngle =
+      data?.rayAngle ?? camAngle - camFov / 2 + (col / cols) * camFov;
 
     if (data) {
-      drawColumn(ctx, data, x, rows);
+      drawColumn(ctx, data, x, rows, camX, camY, horizon);
     } else {
-      drawEmptyColumn(ctx, x, rows);
+      for (let row = 0; row < rows; row++) {
+        if (row > horizon) {
+          drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
+        } else {
+          drawSkyRow(ctx, x, row, horizon);
+        }
+      }
     }
   }
 }

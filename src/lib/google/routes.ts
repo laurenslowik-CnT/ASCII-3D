@@ -101,7 +101,15 @@ export async function fetchRoute(
   );
 
   if (!res.ok) {
-    throw new Error(`Routes API error: ${res.status}`);
+    const body = await res.json().catch(() => null);
+    const errSchema = z.object({
+      error: z.object({ message: z.string().optional() }).optional(),
+    });
+    const parsed = errSchema.safeParse(body);
+    const msg = parsed.success
+      ? (parsed.data.error?.message ?? `${res.status}`)
+      : `${res.status}`;
+    throw new Error(`Routes API error: ${msg}`);
   }
 
   const data = routesApiSchema.parse(await res.json());

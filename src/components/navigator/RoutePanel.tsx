@@ -32,7 +32,10 @@ export function RoutePanel({ steps, currentStep }: Props) {
       </p>
       <ul className="space-y-1 text-xs">
         {steps.map((step, i) => (
-          <li key={step.instruction} className={stepClassName(i, currentStep)}>
+          <li
+            key={`${step.instruction}:${step.distanceMetres}:${step.streetName}`}
+            className={stepClassName(i, currentStep)}
+          >
             {i === currentStep ? "▶ " : "  "}
             {step.instruction}
             <span className="ml-1 text-green-800">

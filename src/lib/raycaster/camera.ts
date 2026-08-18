@@ -5,14 +5,17 @@ export type Camera = {
   x: number; // grid col (float)
   y: number; // grid row (float)
   angle: number; // radians, 0 = east
-  fov: number; // radians, default Math.PI / 3
+  fov: number; // radians
+  pitch: number; // screen-row offset: positive = looking up, negative = looking down
 };
 
 const MOVE_SPEED = 0.05;
 const ROTATE_SPEED = 0.04;
+const PITCH_STEP = 4;
+const MAX_PITCH = 100;
 
 export function createCamera(x: number, y: number, angle: number): Camera {
-  return { x, y, angle, fov: Math.PI / 3 };
+  return { x, y, angle, fov: Math.PI / 3, pitch: 0 };
 }
 
 function isPassable(x: number, y: number, grid: Grid): boolean {
@@ -43,7 +46,6 @@ export function moveCamera(
   const moveAngle = angles[direction];
   const newX = camera.x + Math.cos(moveAngle) * MOVE_SPEED;
   const newY = camera.y + Math.sin(moveAngle) * MOVE_SPEED;
-
   return {
     ...camera,
     x: isPassable(newX, camera.y, grid) ? newX : camera.x,
@@ -59,6 +61,14 @@ export function rotateCamera(
   return { ...camera, angle: camera.angle + delta };
 }
 
+export function pitchCamera(camera: Camera, direction: "up" | "down"): Camera {
+  const delta = direction === "up" ? PITCH_STEP : -PITCH_STEP;
+  return {
+    ...camera,
+    pitch: Math.max(-MAX_PITCH, Math.min(MAX_PITCH, camera.pitch + delta)),
+  };
+}
+
 export function advanceCameraAlongRoute(
   camera: Camera,
   routeCells: { col: number; row: number }[],
@@ -68,20 +78,17 @@ export function advanceCameraAlongRoute(
   if (!target) {
     return { camera, nextStepIndex: stepIndex };
   }
-
   const targetX = target.col + 0.5;
   const targetY = target.row + 0.5;
   const dx = targetX - camera.x;
   const dy = targetY - camera.y;
   const dist = Math.hypot(dx, dy);
-
   if (dist < 0.1) {
     return {
       camera,
       nextStepIndex: Math.min(stepIndex + 1, routeCells.length - 1),
     };
   }
-
   const speed = Math.min(MOVE_SPEED, dist);
   const angle = Math.atan2(dy, dx);
   return {

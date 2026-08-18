@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { createContext, use, useMemo, useReducer } from "react";
 
-import type { Grid, GridMeta, Route, Step } from "@/lib/grid/types";
+import type { Grid, GridMeta } from "@/lib/grid/types";
 import type { Camera } from "@/lib/raycaster/camera";
 import { createCamera } from "@/lib/raycaster/camera";
 
@@ -13,26 +13,14 @@ type NavigatorState = {
   grid: Grid | null;
   gridMeta: GridMeta | null;
   camera: Camera;
-  route: Route | null;
-  routeCells: { col: number; row: number }[];
-  routeStepIndex: number;
-  routeSteps: Step[];
   view: View;
-  isWalking: boolean;
   error: string | null;
 };
 
 type Action =
   | { type: "SET_GRID"; grid: Grid; meta: GridMeta }
   | { type: "SET_CAMERA"; camera: Camera }
-  | {
-      type: "SET_ROUTE";
-      route: Route;
-      routeCells: { col: number; row: number }[];
-    }
-  | { type: "ADVANCE_STEP"; camera: Camera; stepIndex: number }
   | { type: "TOGGLE_VIEW" }
-  | { type: "TOGGLE_WALKING" }
   | { type: "SET_ERROR"; error: string }
   | { type: "CLEAR_ERROR" };
 
@@ -40,12 +28,7 @@ const initialState: NavigatorState = {
   grid: null,
   gridMeta: null,
   camera: createCamera(0, 0, 0),
-  route: null,
-  routeCells: [],
-  routeStepIndex: 0,
-  routeSteps: [],
   view: "firstperson",
-  isWalking: false,
   error: null,
 };
 
@@ -55,28 +38,11 @@ function reducer(state: NavigatorState, action: Action): NavigatorState {
       return { ...state, grid: action.grid, gridMeta: action.meta };
     case "SET_CAMERA":
       return { ...state, camera: action.camera };
-    case "SET_ROUTE":
-      return {
-        ...state,
-        route: action.route,
-        routeCells: action.routeCells,
-        routeSteps: action.route.steps,
-        routeStepIndex: 0,
-        isWalking: true,
-      };
-    case "ADVANCE_STEP":
-      return {
-        ...state,
-        camera: action.camera,
-        routeStepIndex: action.stepIndex,
-      };
     case "TOGGLE_VIEW":
       return {
         ...state,
         view: state.view === "firstperson" ? "overhead" : "firstperson",
       };
-    case "TOGGLE_WALKING":
-      return { ...state, isWalking: !state.isWalking };
     case "SET_ERROR":
       return { ...state, error: action.error };
     case "CLEAR_ERROR":

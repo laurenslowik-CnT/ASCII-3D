@@ -1,22 +1,17 @@
-// src/components/navigator/Navigator.tsx
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import * as z from "zod";
 
 import { latLngToCell } from "@/lib/grid/coords";
-import type { Grid, GridMeta, LatLng, Route } from "@/lib/grid/types";
+import type { Grid, GridMeta, LatLng } from "@/lib/grid/types";
 import type { Camera } from "@/lib/raycaster/camera";
-import { advanceCameraAlongRoute } from "@/lib/raycaster/camera";
 
 import { AddressSearch } from "./AddressSearch";
 import { NavigatorProvider, useNavigator } from "./NavigatorContext";
 import { OverheadCanvas } from "./OverheadCanvas";
 import { RaycasterCanvas } from "./RaycasterCanvas";
-import { RoutePanel } from "./RoutePanel";
 import { ViewToggle } from "./ViewToggle";
-
-const WALK_INTERVAL_MS = 33;
 
 // ── Zod schemas ────────────────────────────────────────────────────────────────
 
@@ -39,17 +34,6 @@ const gridResponseSchema = z.object({
   meta: gridMetaSchema,
 });
 
-const stepSchema = z.object({
-  instruction: z.string(),
-  distanceMetres: z.number(),
-  streetName: z.string(),
-});
-
-const routeSchema = z.object({
-  polyline: z.array(latLngSchema),
-  steps: z.array(stepSchema),
-});
-
 // ── API helpers ────────────────────────────────────────────────────────────────
 
 async function loadGrid(): Promise<{ grid: Grid; meta: GridMeta }> {
@@ -65,84 +49,14 @@ async function geocodeOne(address: string): Promise<LatLng> {
     `/api/geocode?address=${encodeURIComponent(address)}`,
   );
   if (!res.ok) {
-    throw new Error(`Geocode failed for "${address}": ${res.status}`);
+    const body = await res.json().catch(() => null);
+    const parsed = z.object({ error: z.string().optional() }).safeParse(body);
+    const msg = parsed.success
+      ? (parsed.data.error ?? `${res.status}`)
+      : `${res.status}`;
+    throw new Error(`Geocode failed: ${msg}`);
   }
   return latLngSchema.parse(await res.json());
-}
-
-async function loadRoute(origin: LatLng, destination: LatLng): Promise<Route> {
-  const res = await fetch("/api/route", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ origin, destination }),
-  });
-  if (!res.ok) {
-    throw new Error(`Route fetch failed: ${res.status}`);
-  }
-  return routeSchema.parse(await res.json());
-}
-
-async function resolveRoute(
-  originAddr: string,
-  destAddr: string,
-  meta: GridMeta,
-): Promise<{ route: Route; routeCells: { col: number; row: number }[] }> {
-  const [originLatLng, destLatLng] = await Promise.all([
-    geocodeOne(originAddr),
-    geocodeOne(destAddr),
-  ]);
-  const route = await loadRoute(originLatLng, destLatLng);
-  const routeCells = route.polyline.map((pt) => latLngToCell(pt, meta));
-  return { route, routeCells };
-}
-
-// ── Walking effect ─────────────────────────────────────────────────────────────
-
-function useWalkingEffect() {
-  const { state, dispatch } = useNavigator();
-  const stateRef = useRef(state);
-
-  useEffect(() => {
-    stateRef.current = state;
-  });
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      const { isWalking, routeCells, routeStepIndex } = stateRef.current;
-      if (!isWalking || routeCells.length === 0) {
-        return;
-      }
-      const { camera, nextStepIndex } = advanceCameraAlongRoute(
-        stateRef.current.camera,
-        routeCells,
-        routeStepIndex,
-      );
-      dispatch({ type: "ADVANCE_STEP", camera, stepIndex: nextStepIndex });
-    }, WALK_INTERVAL_MS);
-
-    return () => {
-      clearInterval(id);
-    };
-  }, [dispatch]);
-}
-
-// ── Spacebar listener ──────────────────────────────────────────────────────────
-
-function useSpacebarToggle() {
-  const { dispatch } = useNavigator();
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === " " || e.code === "Space") {
-        e.preventDefault();
-        dispatch({ type: "TOGGLE_WALKING" });
-      }
-    }
-    window.addEventListener("keydown", handleKey);
-    return () => {
-      window.removeEventListener("keydown", handleKey);
-    };
-  }, [dispatch]);
 }
 
 // ── Error banner ───────────────────────────────────────────────────────────────
@@ -160,12 +74,9 @@ function ErrorBanner({ error }: { readonly error: string | null }) {
 
 // ── Canvas layer ───────────────────────────────────────────────────────────────
 
-type CanvasLayerProps = {
-  readonly grid: Grid;
-};
-
-function CanvasLayer({ grid }: CanvasLayerProps) {
+function CanvasLayer({ grid }: { readonly grid: Grid }) {
   const { state, dispatch } = useNavigator();
+  const cellSize = state.gridMeta?.cellSize ?? 4;
 
   const handleCameraChange = useCallback(
     (camera: Camera) => {
@@ -179,17 +90,12 @@ function CanvasLayer({ grid }: CanvasLayerProps) {
       <RaycasterCanvas
         grid={grid}
         camera={state.camera}
+        cellSize={cellSize}
         onCameraChange={handleCameraChange}
       />
     );
   }
-  return (
-    <OverheadCanvas
-      grid={grid}
-      camera={state.camera}
-      routeCells={state.routeCells}
-    />
-  );
+  return <OverheadCanvas grid={grid} camera={state.camera} routeCells={[]} />;
 }
 
 // ── Grid fetch hook ────────────────────────────────────────────────────────────
@@ -211,7 +117,7 @@ function useGridLoader() {
             x: Math.floor(meta.cols / 2) + 0.5,
             y: Math.floor(meta.rows / 2) + 0.5,
             angle: 0,
-            fov: Math.PI / 3,
+            fov: (Math.PI * 5) / 12,
           },
         });
       })
@@ -230,22 +136,44 @@ function useGridLoader() {
   }, [dispatch]);
 }
 
-// ── Route request hook ─────────────────────────────────────────────────────────
+// ── Inner (reads context) ──────────────────────────────────────────────────────
 
-function useRouteRequest() {
+function NavigatorInner() {
   const { state, dispatch } = useNavigator();
-  const [isRouteLoading, setIsRouteLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRoute = useCallback(
-    (origin: string, destination: string) => {
+  useGridLoader();
+
+  const handleToggleView = useCallback(() => {
+    dispatch({ type: "TOGGLE_VIEW" });
+  }, [dispatch]);
+
+  const handleNavigate = useCallback(
+    (address: string) => {
       if (!state.gridMeta) {
         return;
       }
       const meta = state.gridMeta;
-      setIsRouteLoading(true);
-      resolveRoute(origin, destination, meta)
-        .then(({ route, routeCells }) => {
-          dispatch({ type: "SET_ROUTE", route, routeCells });
+      setIsLoading(true);
+      dispatch({ type: "CLEAR_ERROR" });
+      geocodeOne(address)
+        .then((latLng) => {
+          const { row, col } = latLngToCell(latLng, meta);
+          if (row < 0 || row >= meta.rows || col < 0 || col >= meta.cols) {
+            throw new Error(
+              "Address is outside the loaded area (Midtown Manhattan around Times Square). Try: Empire State Building, Penn Station, or Rockefeller Center.",
+            );
+          }
+          dispatch({
+            type: "SET_CAMERA",
+            camera: {
+              x: col + 0.5,
+              y: row + 0.5,
+              angle: 0,
+              fov: (Math.PI * 5) / 12,
+              pitch: 0,
+            },
+          });
         })
         .catch((error: unknown) => {
           const message =
@@ -253,29 +181,11 @@ function useRouteRequest() {
           dispatch({ type: "SET_ERROR", error: message });
         })
         .finally(() => {
-          setIsRouteLoading(false);
+          setIsLoading(false);
         });
     },
     [dispatch, state.gridMeta],
   );
-
-  return { handleRoute, isRouteLoading };
-}
-
-// ── Inner (reads context) ──────────────────────────────────────────────────────
-
-function NavigatorInner() {
-  const { state, dispatch } = useNavigator();
-
-  useWalkingEffect();
-  useSpacebarToggle();
-  useGridLoader();
-
-  const { handleRoute, isRouteLoading } = useRouteRequest();
-
-  const handleToggleView = useCallback(() => {
-    dispatch({ type: "TOGGLE_VIEW" });
-  }, [dispatch]);
 
   if (!state.grid) {
     return (
@@ -289,14 +199,8 @@ function NavigatorInner() {
     <main className="relative h-screen overflow-hidden bg-black">
       <CanvasLayer grid={state.grid} />
       <ViewToggle view={state.view} onToggle={handleToggleView} />
-      <AddressSearch onRoute={handleRoute} isLoading={isRouteLoading} />
+      <AddressSearch onNavigate={handleNavigate} isLoading={isLoading} />
       <ErrorBanner error={state.error} />
-      {state.routeSteps.length > 0 && (
-        <RoutePanel
-          steps={state.routeSteps}
-          currentStep={state.routeStepIndex}
-        />
-      )}
     </main>
   );
 }

@@ -1,16 +1,14 @@
-// src/app/api/grid/route.ts
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { env } from "@/env";
 import { CITIES, DEFAULT_CITY } from "@/lib/cities";
 import { buildGrid } from "@/lib/grid/builder";
 import { latLngToTileXY, tileBBox } from "@/lib/grid/coords";
 import type { GridMeta } from "@/lib/grid/types";
-import { fetchTile, parseBuildingsFromTile } from "@/lib/mapbox/tiles";
+import { fetchOsmBuildings } from "@/lib/osm/buildings";
 
 const ZOOM = 16;
-const CACHE_SECONDS = 86400; // 24 hours
+const CACHE_SECONDS = 86400;
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = req.nextUrl;
@@ -28,30 +26,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const tileMinY = centre.y - 1;
     const tileMaxY = centre.y + 1;
 
-    const tilePromises: Promise<{
-      buffer: ArrayBuffer;
-      x: number;
-      y: number;
-    }>[] = [];
-    for (let tx = tileMinX; tx <= tileMaxX; tx++) {
-      for (let ty = tileMinY; ty <= tileMaxY; ty++) {
-        tilePromises.push(
-          fetchTile(ZOOM, tx, ty, env.MAPBOX_ACCESS_TOKEN).then((buffer) => ({
-            buffer,
-            x: tx,
-            y: ty,
-          })),
-        );
-      }
-    }
-
-    const tiles = await Promise.all(tilePromises);
-    const allBuildings = tiles.flatMap(({ buffer, x, y }) =>
-      parseBuildingsFromTile(buffer, ZOOM, x, y),
-    );
-
     const swBbox = tileBBox(tileMinX, tileMaxY, ZOOM);
     const neBbox = tileBBox(tileMaxX, tileMinY, ZOOM);
+
+    const allBuildings = await fetchOsmBuildings(
+      swBbox.south,
+      swBbox.west,
+      neBbox.north,
+      neBbox.east,
+    );
+
     const widthMetres =
       (neBbox.east - swBbox.west) *
       111320 *

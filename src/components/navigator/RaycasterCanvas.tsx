@@ -1,23 +1,28 @@
-// src/components/navigator/RaycasterCanvas.tsx
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
 
 import type { Grid } from "@/lib/grid/types";
 import type { Camera } from "@/lib/raycaster/camera";
-import { moveCamera, rotateCamera } from "@/lib/raycaster/camera";
+import { moveCamera, pitchCamera, rotateCamera } from "@/lib/raycaster/camera";
 import { buildFrameData } from "@/lib/raycaster/engine";
 import { canvasDimensions, renderFrame } from "@/lib/raycaster/renderer";
 
 type Props = {
   readonly grid: Grid;
   readonly camera: Camera;
+  readonly cellSize: number;
   readonly onCameraChange: (camera: Camera) => void;
 };
 
 const PRESSED = new Set<string>();
 
-export function RaycasterCanvas({ grid, camera, onCameraChange }: Props) {
+export function RaycasterCanvas({
+  grid,
+  camera,
+  cellSize,
+  onCameraChange,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraRef = useRef(camera);
   const gridRef = useRef(grid);
@@ -26,7 +31,6 @@ export function RaycasterCanvas({ grid, camera, onCameraChange }: Props) {
   useEffect(() => {
     cameraRef.current = camera;
   });
-
   useEffect(() => {
     gridRef.current = grid;
   });
@@ -50,19 +54,45 @@ export function RaycasterCanvas({ grid, camera, onCameraChange }: Props) {
     if (PRESSED.has("ArrowRight") || PRESSED.has("d")) {
       cam = rotateCamera(cam, "right");
     }
+    if (PRESSED.has("q")) {
+      cam = pitchCamera(cam, "up");
+    }
+    if (PRESSED.has("e")) {
+      cam = pitchCamera(cam, "down");
+    }
     if (cam !== cameraRef.current) {
       onCameraChange(cam);
     }
 
     const { cols, rows } = canvasDimensions(canvas);
-    const frameData = buildFrameData(cam, gridRef.current, cols, rows);
-    renderFrame(frameData, canvas, cols, rows);
+    const frameData = buildFrameData(
+      cam,
+      gridRef.current,
+      cols,
+      rows,
+      cellSize,
+    );
+    renderFrame(
+      frameData,
+      canvas,
+      cols,
+      rows,
+      cam.x,
+      cam.y,
+      cam.pitch,
+      cam.angle,
+      cam.fov,
+    );
 
     rafRef.current = requestAnimationFrame(loop);
-  }, [onCameraChange]);
+  }, [onCameraChange, cellSize]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      const tag = (document.activeElement?.tagName ?? "").toLowerCase();
+      if (tag === "input" || tag === "textarea") {
+        return;
+      }
       PRESSED.add(e.key);
     }
     function onKeyUp(e: KeyboardEvent) {

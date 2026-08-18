@@ -42,3 +42,9 @@ export type CityConfig = {
   center: LatLng;
   cellSize: number; // metres per cell, e.g. 4
 };
+
+export type Building = {
+  polygonLatLng: [number, number][][];
+  height: number;
+  minHeight: number;
+};

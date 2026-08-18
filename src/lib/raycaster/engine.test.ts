@@ -81,8 +81,8 @@ describe("castRay", () => {
 
 describe("buildFrameData", () => {
   it("returns array of length equal to cols", () => {
-    const camera = { x: 2.5, y: 2.5, angle: 0, fov: Math.PI / 3 };
-    const result = buildFrameData(camera, GRID, 10, 20);
+    const camera = { x: 2.5, y: 2.5, angle: 0, fov: Math.PI / 3, pitch: 0 };
+    const result = buildFrameData(camera, GRID, 10, 20, 4);
     expect(result).toHaveLength(10);
   });
 });

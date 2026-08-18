@@ -37,6 +37,9 @@ describe("renderFrame", () => {
         distance: 3,
         face: "NS",
         cell: { type: "building", height: 10 },
+        wallU: 0.5,
+        heightInCells: 2.5,
+        rayAngle: 0,
       },
     ];
     renderFrame(frameData, canvas, 1, 10);
@@ -48,7 +51,7 @@ describe("canvasDimensions", () => {
   it("computes cols and rows from canvas size", () => {
     const { canvas } = makeCanvas();
     const { cols, rows } = canvasDimensions(canvas);
-    expect(cols).toBe(80); // 800 / 10
-    expect(rows).toBe(25); // 400 / 16
+    expect(cols).toBe(160); // 800 / 5
+    expect(rows).toBe(44); // 400 / 9
   });
 });

@@ -117,14 +117,20 @@ export type FrameData = {
   distance: number;
   face: "NS" | "EW";
   cell: Cell;
+  wallU: number; // 0..1 hit position along the wall face (for texture U)
+  heightInCells: number; // building height in grid units (for texture V tiling)
+  rayAngle: number; // direction of this column's ray (for floor casting)
 };
 
 export function buildFrameData(
-  camera: { x: number; y: number; angle: number; fov: number },
+  camera: { x: number; y: number; angle: number; fov: number; pitch: number },
   grid: Grid,
   cols: number,
   rows: number,
+  cellSize: number,
 ): (FrameData | null)[] {
+  const horizon = rows / 2 + camera.pitch;
+
   return Array.from({ length: cols }, (_, col) => {
     const rayAngle = camera.angle - camera.fov / 2 + (col / cols) * camera.fov;
     const hit = castRay({ x: camera.x, y: camera.y }, rayAngle, grid);
@@ -133,8 +139,17 @@ export function buildFrameData(
     }
 
     const correctedDist = hit.distance * Math.cos(rayAngle - camera.angle);
-    const wallHeight = Math.min(rows, Math.floor(rows / correctedDist));
-    const wallTop = Math.floor((rows - wallHeight) / 2);
+    const heightInCells = hit.cell.height / cellSize;
+    const wallHeight = Math.min(
+      rows * 2,
+      Math.floor((rows * heightInCells) / correctedDist),
+    );
+    const wallTop = Math.floor(horizon - wallHeight / 2);
+
+    const hitX = camera.x + hit.distance * Math.cos(rayAngle);
+    const hitY = camera.y + hit.distance * Math.sin(rayAngle);
+    const wallU =
+      hit.face === "EW" ? hitY - Math.floor(hitY) : hitX - Math.floor(hitX);
 
     return {
       charHeight: wallHeight,
@@ -142,6 +157,9 @@ export function buildFrameData(
       distance: correctedDist,
       face: hit.face,
       cell: hit.cell,
+      wallU,
+      heightInCells,
+      rayAngle,
     };
   });
 }

@@ -1,7 +1,6 @@
 // src/lib/grid/builder.ts
 import { latLngToCell } from "@/lib/grid/coords";
-import type { Cell, Grid, GridMeta } from "@/lib/grid/types";
-import type { TileBuilding } from "@/lib/mapbox/tiles";
+import type { Building, Cell, Grid, GridMeta } from "@/lib/grid/types";
 
 function edgeCrossesRay(
   px: number,
@@ -101,7 +100,7 @@ export function rasteriseBuilding(
   }
 }
 
-export function buildGrid(buildings: TileBuilding[], meta: GridMeta): Grid {
+export function buildGrid(buildings: Building[], meta: GridMeta): Grid {
   const grid: Grid = Array.from({ length: meta.rows }, () =>
     Array.from({ length: meta.cols }, (): Cell => ({
       type: "empty",

@@ -7,6 +7,7 @@ export type GeocodeResult = LatLng & { displayName: string };
 
 const googleGeocodeSchema = z.object({
   status: z.string(),
+  error_message: z.string().optional(),
   results: z.array(
     z.object({
       geometry: z.object({
@@ -32,7 +33,8 @@ export async function geocodeAddress(
   const data = googleGeocodeSchema.parse(await res.json());
 
   if (data.status !== "OK" || !data.results[0]) {
-    throw new Error(data.status ?? "No results");
+    const detail = data.error_message ? `: ${data.error_message}` : "";
+    throw new Error(`${data.status ?? "No results"}${detail}`);
   }
 
   const { lat, lng } = data.results[0].geometry.location;
