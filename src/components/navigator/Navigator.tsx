@@ -161,7 +161,7 @@ function NavigatorInner() {
           const { row, col } = latLngToCell(latLng, meta);
           if (row < 0 || row >= meta.rows || col < 0 || col >= meta.cols) {
             throw new Error(
-              "Address is outside the loaded area (Midtown Manhattan around Times Square). Try: Empire State Building, Penn Station, or Rockefeller Center.",
+              "Address is outside Manhattan. Try any address on the island.",
             );
           }
           dispatch({

@@ -82,3 +82,6 @@ next-env.d.ts
 
 *storybook.log
 storybook-static
+
+# generated static data — run scripts/download-buildings.mjs to populate
+/public/data/

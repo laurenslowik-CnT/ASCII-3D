@@ -35,7 +35,7 @@ export async function fetchOsmBuildings(
   east: number,
 ): Promise<Building[]> {
   const bbox = `${south},${west},${north},${east}`;
-  const query = `[out:json][timeout:60];way["building"](${bbox});out geom;`;
+  const query = `[out:json][timeout:90];way["building"](${bbox});out geom;`;
 
   const headers = { "User-Agent": USER_AGENT };
   let lastError = "";

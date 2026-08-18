@@ -3,15 +3,15 @@ import type { CityConfig } from "@/lib/grid/types";
 
 export const CITIES: Record<string, CityConfig> = {
   nyc: {
-    name: "New York City",
+    name: "Manhattan",
     bbox: {
-      north: 40.917577,
-      south: 40.477399,
-      east: -73.700272,
-      west: -74.25909,
+      north: 40.882, // Inwood / Washington Heights
+      south: 40.7, // Battery Park / Financial District
+      east: -73.907, // East River
+      west: -74.02, // Hudson River
     },
     center: { lat: 40.758896, lng: -73.98513 }, // Times Square
-    cellSize: 4,
+    cellSize: 8,
   },
 };
 

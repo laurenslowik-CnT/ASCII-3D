@@ -1,14 +1,45 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { CITIES, DEFAULT_CITY } from "@/lib/cities";
 import { buildGrid } from "@/lib/grid/builder";
-import { latLngToTileXY, tileBBox } from "@/lib/grid/coords";
 import type { GridMeta } from "@/lib/grid/types";
-import { fetchOsmBuildings } from "@/lib/osm/buildings";
 
-const ZOOM = 16;
 const CACHE_SECONDS = 86400;
+
+const buildingSchema = z.object({
+  polygonLatLng: z.array(z.array(z.tuple([z.number(), z.number()]))),
+  height: z.number(),
+  minHeight: z.number(),
+});
+
+const buildingsFileSchema = z.object({
+  buildings: z.array(buildingSchema),
+});
+
+const BUILDINGS_FILE = path.join(
+  process.cwd(),
+  "public",
+  "data",
+  "manhattan-buildings.json",
+);
+
+async function loadBuildings() {
+  let content: string;
+  try {
+    content = await fs.readFile(BUILDINGS_FILE, "utf8");
+  } catch {
+    throw new Error(
+      "Building data not found. Run: node scripts/download-buildings.mjs",
+    );
+  }
+  const parsed = buildingsFileSchema.parse(JSON.parse(content));
+  return parsed.buildings;
+}
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const { searchParams } = req.nextUrl;
@@ -20,34 +51,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const centre = latLngToTileXY(city.center.lat, city.center.lng, ZOOM);
-    const TILE_RADIUS = 3;
-    const tileMinX = centre.x - TILE_RADIUS;
-    const tileMaxX = centre.x + TILE_RADIUS;
-    const tileMinY = centre.y - TILE_RADIUS;
-    const tileMaxY = centre.y + TILE_RADIUS;
+    const allBuildings = await loadBuildings();
+    const { bbox, center, cellSize } = city;
 
-    const swBbox = tileBBox(tileMinX, tileMaxY, ZOOM);
-    const neBbox = tileBBox(tileMaxX, tileMinY, ZOOM);
-
-    const allBuildings = await fetchOsmBuildings(
-      swBbox.south,
-      swBbox.west,
-      neBbox.north,
-      neBbox.east,
-    );
-
-    const widthMetres =
-      (neBbox.east - swBbox.west) *
-      111320 *
-      Math.cos((city.center.lat * Math.PI) / 180);
-    const heightMetres = (neBbox.north - swBbox.south) * 111320;
+    const metresPerDegreeLng = 111320 * Math.cos((center.lat * Math.PI) / 180);
+    const widthMetres = (bbox.east - bbox.west) * metresPerDegreeLng;
+    const heightMetres = (bbox.north - bbox.south) * 111320;
 
     const meta: GridMeta = {
-      origin: { lat: swBbox.south, lng: swBbox.west },
-      rows: Math.ceil(heightMetres / city.cellSize),
-      cols: Math.ceil(widthMetres / city.cellSize),
-      cellSize: city.cellSize,
+      origin: { lat: bbox.south, lng: bbox.west },
+      rows: Math.ceil(heightMetres / cellSize),
+      cols: Math.ceil(widthMetres / cellSize),
+      cellSize,
     };
 
     const grid = buildGrid(allBuildings, meta);
