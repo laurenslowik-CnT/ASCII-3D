@@ -1,3 +1,4 @@
 *.hbs
 public-storybook/mockServiceWorker.js
 pnpm-lock.yaml
+public/data/
