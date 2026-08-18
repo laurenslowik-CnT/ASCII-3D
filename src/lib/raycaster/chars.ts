@@ -1,15 +1,5 @@
 // src/lib/raycaster/chars.ts
 
-// Wall characters indexed by distance band (0 = closest, 4 = furthest)
-// N/S faces (directly facing camera)
-export const WALL_NS = ["@", "#", "*", ":", "."] as const;
-
-// E/W faces (side faces — vertical strokes)
-export const WALL_EW = ["%", "|", "!", ";", "'"] as const;
-
-// Ground characters indexed by distance from bottom of screen (near → far)
-export const FLOOR = ["#", ":", ".", ",", " "] as const;
-
 // Sky characters — sparse
 export const SKY = [" ", " ", " ", "·", " "] as const;
 
@@ -31,7 +21,7 @@ export function distanceBand(distance: number): number {
 // IBM CGA palette — discrete colors by distance band
 // NS faces: yellow up close fading into blue
 const WALL_NS_COLORS: readonly string[] = [
-  "#ffff55", // band 0 — bright yellow (CGA bright yellow)
+  "#ffff55", // band 0 — bright yellow
   "#ffffff", // band 1 — white
   "#5555ff", // band 2 — bright blue
   "#0000aa", // band 3 — blue
@@ -55,11 +45,11 @@ export function wallColour(distance: number, face: "NS" | "EW"): string {
 
 // Floor — IBM blue gradient, bright near feet
 const FLOOR_COLORS: readonly string[] = [
-  "#0000aa", // near
+  "#0000aa",
   "#000077",
   "#000055",
   "#000033",
-  "#000022", // far
+  "#000022",
 ];
 
 export function floorColour(band: number): string {
@@ -71,13 +61,34 @@ export function skyColour(): string {
   return "#000022";
 }
 
-// ASCII density gradient for texture sampling (dense → sparse)
-const TEXTURE_CHARS = "@#%*+=!;:,. " as const;
+// ── Per-material character palettes ──────────────────────────────────────────
+//
+// Each palette is a string ordered dark→bright (index 0 = darkest texture
+// pixel, index N = brightest). Characters are chosen for visual semantics —
+// what the surface *looks like* — rather than generic density.
 
-// Map texture pixel brightness (0=dark, 255=bright) to an ASCII character.
-// Bright pixel → dense char (looks bright on black bg).
-// Dark pixel  → sparse char (looks dark / empty).
-export function brightnessToChar(b: number): string {
-  const idx = Math.floor((1 - b / 255) * (TEXTURE_CHARS.length - 1));
-  return TEXTURE_CHARS[Math.max(0, Math.min(TEXTURE_CHARS.length - 1, idx))];
+function paletteChar(b: number, palette: string): string {
+  const idx = Math.floor((b / 255) * (palette.length - 1));
+  return palette[Math.max(0, Math.min(palette.length - 1, idx))] ?? " ";
+}
+
+// Glass curtain wall — vertical strokes suggest window panes; spandrel fades out
+//   dark (spandrel) →  ' ; ! | I |  ← bright (glass reflection)
+const GLASS_PALETTE = "  ';!||II|";
+export function charFromGlass(b: number): string {
+  return paletteChar(b, GLASS_PALETTE);
+}
+
+// Brick / masonry — chunky chars for solid mass; dots for mortar joints
+//   dark (mortar) →  . , : = + # @ ← bright (brick highlight)
+const BRICK_PALETTE = " .,:=+#@@";
+export function charFromBrick(b: number): string {
+  return paletteChar(b, BRICK_PALETTE);
+}
+
+// Pavement / floor — subtle surface texture, mostly empty at distance
+//   dark (far concrete) →  . , ; : ← bright (close concrete)
+const FLOOR_PALETTE = "   ..,;:=";
+export function charFromFloor(b: number): string {
+  return paletteChar(b, FLOOR_PALETTE);
 }

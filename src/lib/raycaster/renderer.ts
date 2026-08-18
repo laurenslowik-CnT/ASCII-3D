@@ -1,6 +1,8 @@
 // src/lib/raycaster/renderer.ts
 import {
-  brightnessToChar,
+  charFromBrick,
+  charFromFloor,
+  charFromGlass,
   floorColour,
   SKY,
   skyColour,
@@ -15,6 +17,9 @@ import {
 
 const CHAR_W = 5;
 const CHAR_H = 9;
+
+// Buildings taller than this (metres) use the glass palette; shorter use brick
+const GLASS_HEIGHT_THRESHOLD = 20;
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -41,7 +46,7 @@ function drawFloorRow(
   const dimmed = Math.floor(raw * Math.max(0.05, 1 - floorDist / 18));
   const band = Math.min(4, Math.floor(floorDist / 4));
   ctx.fillStyle = floorColour(band);
-  ctx.fillText(brightnessToChar(dimmed), x, row * CHAR_H);
+  ctx.fillText(charFromFloor(dimmed), x, row * CHAR_H);
 }
 
 function drawSkyRow(ctx: Ctx, x: number, row: number, horizon: number): void {
@@ -71,13 +76,15 @@ function drawColumn(
   } = data;
   const wallBottom = wallTop + charHeight;
   const tex = selectTexture(cellHeight);
+  const charFromMaterial =
+    cellHeight > GLASS_HEIGHT_THRESHOLD ? charFromGlass : charFromBrick;
 
   for (let row = 0; row < rows; row++) {
     if (row >= wallTop && row < wallBottom) {
       const v = ((row - wallTop) / Math.max(1, charHeight)) * heightInCells;
       const brightness = sampleTexture(tex, wallU, v);
       ctx.fillStyle = wallColour(distance, face);
-      ctx.fillText(brightnessToChar(brightness), x, row * CHAR_H);
+      ctx.fillText(charFromMaterial(brightness), x, row * CHAR_H);
     } else if (row > horizon) {
       drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
     } else {
