@@ -21,10 +21,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   try {
     const centre = latLngToTileXY(city.center.lat, city.center.lng, ZOOM);
-    const tileMinX = centre.x - 1;
-    const tileMaxX = centre.x + 1;
-    const tileMinY = centre.y - 1;
-    const tileMaxY = centre.y + 1;
+    const TILE_RADIUS = 3;
+    const tileMinX = centre.x - TILE_RADIUS;
+    const tileMaxX = centre.x + TILE_RADIUS;
+    const tileMinY = centre.y - TILE_RADIUS;
+    const tileMaxY = centre.y + TILE_RADIUS;
 
     const swBbox = tileBBox(tileMinX, tileMaxY, ZOOM);
     const neBbox = tileBBox(tileMaxX, tileMinY, ZOOM);
