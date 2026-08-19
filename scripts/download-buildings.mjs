@@ -5,8 +5,8 @@
 //
 // Usage: node scripts/download-buildings.mjs
 
-import { mkdirSync, writeFileSync } from "fs";
-import { join } from "path";
+import { mkdirSync, writeFileSync } from "node:fs";
+import path from "node:path";
 
 const WEST = -74.02;
 const EAST = -73.907;
@@ -18,13 +18,15 @@ const UA = "ASCII-3D-Navigator/1.0 (one-time static data download)";
 
 // Three horizontal strips cover all of Manhattan without overloading Overpass.
 const STRIPS = [
-  { south: 40.7, north: 40.75 },   // Battery Park → Times Square
-  { south: 40.75, north: 40.81 },  // Midtown → Upper West/East Side
+  { south: 40.7, north: 40.75 }, // Battery Park → Times Square
+  { south: 40.75, north: 40.81 }, // Midtown → Upper West/East Side
   { south: 40.81, north: 40.882 }, // Harlem → Inwood
 ];
 
 function parseHeight(v) {
-  if (!v) return 0;
+  if (!v) {
+    return 0;
+  }
   const n = parseFloat(v);
   return isNaN(n) ? 0 : n;
 }
@@ -45,8 +47,8 @@ async function fetchStrip({ south, north }) {
         return json.elements ?? [];
       }
       console.warn(`  → ${res.status} from ${mirror}`);
-    } catch (e) {
-      console.warn(`  → ${mirror} error: ${e.message}`);
+    } catch (error) {
+      console.warn(`  → ${mirror} error: ${error.message}`);
     }
   }
   throw new Error(`All mirrors failed for strip ${south}–${north}`);
@@ -62,8 +64,12 @@ async function main() {
     let added = 0;
 
     for (const el of elements) {
-      if (el.type !== "way" || seen.has(el.id)) continue;
-      if (!el.geometry || el.geometry.length < 4) continue;
+      if (el.type !== "way" || seen.has(el.id)) {
+        continue;
+      }
+      if (!el.geometry || el.geometry.length < 4) {
+        continue;
+      }
       seen.add(el.id);
 
       const tags = el.tags ?? {};
@@ -81,10 +87,10 @@ async function main() {
     console.log(`  → ${added} buildings added (${buildings.length} total)`);
   }
 
-  const outDir = join(process.cwd(), "public", "data");
+  const outDir = path.join(process.cwd(), "public", "data");
   mkdirSync(outDir, { recursive: true });
 
-  const outPath = join(outDir, "manhattan-buildings.json");
+  const outPath = path.join(outDir, "manhattan-buildings.json");
   const payload = {
     generated: new Date().toISOString(),
     source: "OpenStreetMap contributors via Overpass API (ODbL)",
@@ -94,10 +100,14 @@ async function main() {
 
   writeFileSync(outPath, JSON.stringify(payload));
   const sizeMB = (JSON.stringify(payload).length / 1_048_576).toFixed(1);
-  console.log(`\nSaved ${buildings.length.toLocaleString()} buildings → ${outPath} (${sizeMB} MB)`);
+  console.log(
+    `\nSaved ${buildings.length.toLocaleString()} buildings → ${outPath} (${sizeMB} MB)`,
+  );
 }
 
-main().catch((e) => {
-  console.error(e);
+try {
+  await main();
+} catch (error) {
+  console.error(error);
   process.exit(1);
-});
+}

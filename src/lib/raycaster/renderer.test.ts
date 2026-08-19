@@ -21,7 +21,7 @@ function makeCanvas() {
 }
 
 describe("renderFrame", () => {
-  it("calls fillRect to clear the canvas", () => {
+  it("clears the canvas to a black void", () => {
     const { canvas, ctx } = makeCanvas();
     const frameData: (FrameData | null)[] = [null, null];
     renderFrame(frameData, canvas, 2, 10);

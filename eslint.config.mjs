@@ -32,6 +32,8 @@ export default defineConfig([
     ".pnp*",
     ".yarn",
     "**/generated/*",
+    // Multi-megabyte generated city data — linting it OOMs the JSON plugin.
+    "public/data/**",
     "public-storybook/mockServiceWorker.js",
     "storybook-static",
   ]),
@@ -298,6 +300,15 @@ export default defineConfig([
     rules: {
       "sonarjs/pseudo-random": "off",
       "@typescript-eslint/consistent-type-assertions": "off",
+    },
+  },
+  {
+    // Standalone Node data/build scripts — CLIs that legitimately print to the
+    // console and stream work with continue statements.
+    files: ["scripts/**/*.{mjs,cjs,js}"],
+    rules: {
+      "no-console": "off",
+      "no-continue": "off",
     },
   },
 ]);

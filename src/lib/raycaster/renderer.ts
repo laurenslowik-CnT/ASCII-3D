@@ -2,20 +2,29 @@
 import {
   buildingRGB,
   cellNoise,
-  charFromFloor,
-  floorColour,
   luminanceToChar,
   MAX_RENDER_DIST,
-  shadeRGB,
   windowLevel,
 } from "@/lib/raycaster/chars";
 import type { FrameData } from "@/lib/raycaster/engine";
-import { FLOOR_TEXTURE, sampleTexture } from "@/lib/raycaster/textures";
 
 const CHAR_W = 5;
 const CHAR_H = 9;
 
 type Ctx = CanvasRenderingContext2D;
+
+// Grid line half-width in world units, grown with distance so joints stay
+// ~1 cell wide on screen instead of collapsing to nothing near the horizon.
+function gridLine(wx: number, wy: number, floorDist: number): number {
+  const fx = wx - Math.floor(wx);
+  const fy = wy - Math.floor(wy);
+  const dLine = Math.min(fx, 1 - fx, fy, 1 - fy);
+  const halfWidth = Math.min(0.42, 0.015 + floorDist * 0.014);
+  if (dLine > halfWidth) {
+    return 0;
+  }
+  return 1 - dLine / halfWidth; // 1 at the line centre, 0 at its edge
+}
 
 function drawFloorRow(
   ctx: Ctx,
@@ -34,13 +43,19 @@ function drawFloorRow(
   const floorDist = posZ / relRow;
   const wx = camX + floorDist * Math.cos(rayAngle);
   const wy = camY + floorDist * Math.sin(rayAngle);
-  const u = ((wx % 1) + 1) % 1;
-  const v = ((wy % 1) + 1) % 1;
-  const raw = sampleTexture(FLOOR_TEXTURE, u, v);
-  const dimmed = Math.floor(raw * Math.max(0.04, 1 - floorDist / 16));
-  const band = Math.min(4, Math.floor(floorDist / 4));
-  ctx.fillStyle = floorColour(band);
-  ctx.fillText(charFromFloor(dimmed), x, row * CHAR_H);
+
+  // Perspective fade — brightest underfoot, dimming with distance but never to
+  // pure black, so the street stays readable against the void.
+  const fade = Math.max(0.16, 1 - floorDist / 24);
+  // Base asphalt with world-space grain that stays put as the camera moves…
+  const grain = cellNoise(Math.floor(wx * 3), Math.floor(wy * 3));
+  // …and a brighter scaffold along the cell/street grid lines.
+  const line = gridLine(wx, wy, floorDist);
+  const lum = fade * (0.32 + grain * 0.18 + line * 0.5);
+
+  const g = Math.round(20 + lum * 170);
+  ctx.fillStyle = `rgb(${g},${g},${g})`;
+  ctx.fillText(luminanceToChar(lum), x, row * CHAR_H);
 }
 
 // Real-world building structure (metres)
@@ -71,13 +86,14 @@ function drawColumn(
     heightInCells,
   } = data;
   const wallBottom = wallTop + charHeight;
-  const rgb = buildingRGB(mapX, mapY);
+  const [br, bg, bb] = buildingRGB(mapX, mapY);
   const buildingHeightM = heightInCells * cellSize;
 
-  // Directional light: faces pointing one way are brighter than the other.
-  const faceShade = face === "NS" ? 1 : 0.72;
-  // Distance fog — never fully black so far buildings still read.
-  const fog = 0.24 + 0.76 * Math.max(0, 1 - distance / MAX_RENDER_DIST);
+  // Neutral directional light gives each face form without a hard night look.
+  const faceShade = face === "NS" ? 1 : 0.78;
+  // Depth cue against the black void: distant surfaces dim but never to zero,
+  // so far buildings stay legible instead of dissolving into the background.
+  const depth = 0.4 + 0.6 * Math.max(0, 1 - distance / MAX_RENDER_DIST);
 
   const col = Math.round(x / CHAR_W);
   const bayPosRaw = (wallU * cellSize) / BAY_WIDTH_M;
@@ -94,28 +110,22 @@ function drawColumn(
       const isSpandrel = withinFloor < SPANDREL_FRAC;
       const structural = isSpandrel || onMullion;
 
-      let base: number;
-      let glow = 0;
-      if (structural) {
-        base = 0.4; // concrete slab / mullion
-      } else {
-        // Each window pane has its own brightness state → varied grid.
-        const w = windowLevel(mapX, mapY, floorIdx, bayIdx);
-        base = w.level;
-        if (w.lit) {
-          glow = 0.55;
-        }
-      }
+      // Concrete slab/mullion reads as matte; glass panes vary pane-to-pane.
+      const base = structural
+        ? 0.55
+        : windowLevel(mapX, mapY, floorIdx, bayIdx);
 
       // Per-cell dither breaks the quantised "lego brick" blocks into grain.
-      const dither = (cellNoise(col, row) - 0.5) * 0.16;
-      const luminance = Math.max(
-        0,
-        Math.min(1, faceShade * fog * base + dither),
-      );
+      const dither = (cellNoise(col, row) - 0.5) * 0.14;
+      const surf = Math.max(0, Math.min(1, faceShade * depth * base + dither));
+      // Gamma < 1 lifts the midtones so facades read bright and detailed
+      // against black without clipping the highlights.
+      const luminance = surf ** 0.7;
 
-      // Camera-perspective mapping: brightness picks the glyph.
-      ctx.fillStyle = shadeRGB(rgb, luminance, glow);
+      const r = Math.round(br * luminance);
+      const g = Math.round(bg * luminance);
+      const b = Math.round(bb * luminance);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillText(luminanceToChar(luminance), x, row * CHAR_H);
     } else if (row > horizon) {
       drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
@@ -141,7 +151,7 @@ export function renderFrame(
     return;
   }
 
-  // Pure black background — sky is never drawn over
+  // Pure black void — buildings and street are drawn over it; sky stays black.
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.font = `${CHAR_H}px monospace`;
@@ -158,7 +168,7 @@ export function renderFrame(
     if (data) {
       drawColumn(ctx, data, x, rows, camX, camY, horizon, cellSize);
     } else {
-      // No wall hit — only render floor below horizon, sky stays black
+      // No wall hit — street below the horizon, black sky above.
       for (let row = Math.ceil(horizon); row < rows; row++) {
         drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
       }
