@@ -9,7 +9,12 @@ import { env } from "@/env";
 import type { LatLng } from "@/lib/grid/types";
 import { framebufferToAscii } from "@/lib/raycaster/asciify";
 
-const CHAR_W = 5;
+// Character cell in pixels. A monospace glyph's ink at CHAR_H px is ~5.4 wide
+// but only ~0.72·CHAR_H tall, so a 5×9 cell renders real imagery ~1.5× wider
+// than tall (vertical "squish"). Widening the horizontal cell to ~8 matches the
+// horizontal ink fill to the vertical, so squares read square. Tune CHAR_W if
+// the map still looks stretched (larger = taller) or squished (smaller = wider).
+const CHAR_W = 8;
 const CHAR_H = 9;
 const DEFAULT_STYLE = "mapbox://styles/laurenslowik/cmt0dd8r1001x01qjba6l6gz0";
 const ZOOM = 17.2;
