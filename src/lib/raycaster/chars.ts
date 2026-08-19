@@ -64,13 +64,46 @@ export function buildingColour(
 // it is. This is the "photographic" mapping used by the reference video: render
 // a luminance value per cell, then quantise it to a density ramp.
 
-// Ramp ordered dark → light by visual ink coverage.
-const LUMA_RAMP = " .·:-~=+ic*tosxk#%8@";
+// Ramp ordered dark → light by visual ink coverage. A fine ramp (à la
+// ascii_magic) means small brightness differences map to different glyphs,
+// which keeps flat regions from collapsing into solid "lego brick" blocks.
+const LUMA_RAMP =
+  " .'`^\":;!i><~+_-?][}{1)|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 
 export function luminanceToChar(l: number): string {
   const clamped = Math.max(0, Math.min(1, l));
   const idx = Math.round(clamped * (LUMA_RAMP.length - 1));
   return LUMA_RAMP[idx] ?? " ";
+}
+
+// Deterministic hash noise in [0,1) for a screen cell — breaks up the uniform
+// "lego brick" blocks that pure quantisation produces.
+export function cellNoise(a: number, b: number): number {
+  let h = (Math.imul(a, 374761393) ^ Math.imul(b, 668265263)) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  h = Math.imul(h, 1274126177) >>> 0;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+// Each window pane gets its own continuous brightness, so a facade reads as a
+// varied grid rather than flat sheets that quantise into solid blocks. ~14% of
+// windows are "lit" with a warm glow (cyberpunk-night feel).
+export function windowLevel(
+  mapX: number,
+  mapY: number,
+  floorIdx: number,
+  bayIdx: number,
+): { level: number; lit: boolean } {
+  const h = cellNoise(
+    Math.imul(mapX, 92821) ^ (floorIdx * 40503),
+    Math.imul(mapY, 53987) ^ (bayIdx * 26879),
+  );
+  if (h < 0.14) {
+    // Lit window — bright, warm, with its own brightness spread
+    return { level: 0.85 + h, lit: true };
+  }
+  // Unlit — continuous spread from dark to fairly bright, never saturating
+  return { level: 0.25 + (h - 0.14) * 0.7, lit: false };
 }
 
 // Tint a base rgb by a luminance value, optionally shifting toward warm white

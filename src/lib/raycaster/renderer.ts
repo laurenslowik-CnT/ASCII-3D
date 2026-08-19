@@ -1,11 +1,13 @@
 // src/lib/raycaster/renderer.ts
 import {
   buildingRGB,
+  cellNoise,
   charFromFloor,
   floorColour,
   luminanceToChar,
   MAX_RENDER_DIST,
   shadeRGB,
+  windowLevel,
 } from "@/lib/raycaster/chars";
 import type { FrameData } from "@/lib/raycaster/engine";
 import { FLOOR_TEXTURE, sampleTexture } from "@/lib/raycaster/textures";
@@ -47,21 +49,6 @@ const SPANDREL_FRAC = 0.3; // bottom of each storey is the concrete slab
 const BAY_WIDTH_M = 3.5; // horizontal window bay
 const MULLION_FRAC = 0.16; // edge of each bay is a mullion
 
-function litWindowHash(
-  mapX: number,
-  mapY: number,
-  floorIdx: number,
-  bayIdx: number,
-): number {
-  const h =
-    (Math.imul(floorIdx, 73856093) ^
-      Math.imul(bayIdx, 19349663) ^
-      Math.imul(mapX, 83492791) ^
-      Math.imul(mapY, 2971215073)) >>>
-    0;
-  return h % 100;
-}
-
 function drawColumn(
   ctx: Ctx,
   data: FrameData,
@@ -92,6 +79,7 @@ function drawColumn(
   // Distance fog — never fully black so far buildings still read.
   const fog = 0.24 + 0.76 * Math.max(0, 1 - distance / MAX_RENDER_DIST);
 
+  const col = Math.round(x / CHAR_W);
   const bayPosRaw = (wallU * cellSize) / BAY_WIDTH_M;
   const bayIdx = Math.floor(bayPosRaw);
   const bayPos = ((bayPosRaw % 1) + 1) % 1;
@@ -104,25 +92,30 @@ function drawColumn(
       const floorIdx = Math.floor(heightM / FLOOR_HEIGHT_M);
       const withinFloor = (heightM / FLOOR_HEIGHT_M) % 1;
       const isSpandrel = withinFloor < SPANDREL_FRAC;
+      const structural = isSpandrel || onMullion;
 
-      // Structural darkening: slabs and mullions read as darker luminance.
-      const structure = isSpandrel || onMullion ? 0.42 : 1;
-
-      // Some windows are lit — scattered warm glow, the cyberpunk-night feel.
-      const lit =
-        !isSpandrel &&
-        !onMullion &&
-        litWindowHash(mapX, mapY, floorIdx, bayIdx) < 16;
-
-      let luminance = faceShade * fog * structure;
+      let base: number;
       let glow = 0;
-      if (lit) {
-        luminance = Math.min(1, fog * 1.2);
-        glow = 0.55;
+      if (structural) {
+        base = 0.4; // concrete slab / mullion
+      } else {
+        // Each window pane has its own brightness state → varied grid.
+        const w = windowLevel(mapX, mapY, floorIdx, bayIdx);
+        base = w.level;
+        if (w.lit) {
+          glow = 0.55;
+        }
       }
 
-      // The camera-perspective mapping: brightness picks the glyph.
-      ctx.fillStyle = shadeRGB(rgb, Math.min(1, luminance * 1.1), glow);
+      // Per-cell dither breaks the quantised "lego brick" blocks into grain.
+      const dither = (cellNoise(col, row) - 0.5) * 0.16;
+      const luminance = Math.max(
+        0,
+        Math.min(1, faceShade * fog * base + dither),
+      );
+
+      // Camera-perspective mapping: brightness picks the glyph.
+      ctx.fillStyle = shadeRGB(rgb, luminance, glow);
       ctx.fillText(luminanceToChar(luminance), x, row * CHAR_H);
     } else if (row > horizon) {
       drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
