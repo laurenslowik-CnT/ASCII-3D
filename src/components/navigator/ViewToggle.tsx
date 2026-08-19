@@ -3,11 +3,17 @@
 
 import { useEffect } from "react";
 
-type View = "firstperson" | "overhead";
+type View = "photoreal" | "firstperson" | "overhead";
 
 type Props = {
   readonly view: View;
   readonly onToggle: () => void;
+};
+
+const LABEL: Record<View, string> = {
+  photoreal: "[ PHOTO ]",
+  firstperson: "[ 3D ]",
+  overhead: "[ MAP ]",
 };
 
 export function ViewToggle({ view, onToggle }: Props) {
@@ -31,7 +37,7 @@ export function ViewToggle({ view, onToggle }: Props) {
       title="Toggle view (Tab)"
       type="button"
     >
-      {view === "firstperson" ? "[ 3D ]" : "[ MAP ]"}
+      {LABEL[view]}
     </button>
   );
 }

@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import * as z from "zod";
 
-import { latLngToCell } from "@/lib/grid/coords";
+import { cellToLatLng, latLngToCell } from "@/lib/grid/coords";
 import type { Grid, GridMeta, LatLng } from "@/lib/grid/types";
 import type { Camera } from "@/lib/raycaster/camera";
 
 import { AddressSearch } from "./AddressSearch";
+import { MapboxAsciiCanvas } from "./MapboxAsciiCanvas";
 import { NavigatorProvider, useNavigator } from "./NavigatorContext";
 import { OverheadCanvas } from "./OverheadCanvas";
 import { RaycasterCanvas } from "./RaycasterCanvas";
@@ -118,6 +119,19 @@ function CanvasLayer({ grid }: { readonly grid: Grid }) {
     [dispatch],
   );
 
+  const handleError = useCallback(
+    (error: string) => {
+      dispatch({ type: "SET_ERROR", error });
+    },
+    [dispatch],
+  );
+
+  if (state.view === "photoreal") {
+    const center = state.gridMeta
+      ? cellToLatLng(state.camera.y, state.camera.x, state.gridMeta)
+      : { lat: 40.7127, lng: -74.0134 };
+    return <MapboxAsciiCanvas center={center} onError={handleError} />;
+  }
   if (state.view === "firstperson") {
     return (
       <RaycasterCanvas

@@ -7,7 +7,9 @@ import type { Grid, GridMeta } from "@/lib/grid/types";
 import type { Camera } from "@/lib/raycaster/camera";
 import { createCamera } from "@/lib/raycaster/camera";
 
-export type View = "firstperson" | "overhead";
+export type View = "photoreal" | "firstperson" | "overhead";
+
+const VIEW_ORDER: readonly View[] = ["photoreal", "firstperson", "overhead"];
 
 type NavigatorState = {
   grid: Grid | null;
@@ -28,7 +30,7 @@ const initialState: NavigatorState = {
   grid: null,
   gridMeta: null,
   camera: createCamera(0, 0, 0),
-  view: "firstperson",
+  view: "photoreal",
   error: null,
 };
 
@@ -38,11 +40,10 @@ function reducer(state: NavigatorState, action: Action): NavigatorState {
       return { ...state, grid: action.grid, gridMeta: action.meta };
     case "SET_CAMERA":
       return { ...state, camera: action.camera };
-    case "TOGGLE_VIEW":
-      return {
-        ...state,
-        view: state.view === "firstperson" ? "overhead" : "firstperson",
-      };
+    case "TOGGLE_VIEW": {
+      const next = (VIEW_ORDER.indexOf(state.view) + 1) % VIEW_ORDER.length;
+      return { ...state, view: VIEW_ORDER[next] ?? "photoreal" };
+    }
     case "SET_ERROR":
       return { ...state, error: action.error };
     case "CLEAR_ERROR":

@@ -8,6 +8,10 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_SITE_URL: z.string().optional(),
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1),
+    // Public Mapbox token (pk.*) for client-side GL rendering. Optional so the
+    // app still boots without it; the photoreal view guards on its absence.
+    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: z.string().optional(),
+    NEXT_PUBLIC_MAPBOX_STYLE: z.string().optional(),
   },
   runtimeEnv: {
     GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
@@ -17,5 +21,8 @@ export const env = createEnv({
       "localhost:3000",
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY:
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:
+      process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
+    NEXT_PUBLIC_MAPBOX_STYLE: process.env.NEXT_PUBLIC_MAPBOX_STYLE,
   },
 });
