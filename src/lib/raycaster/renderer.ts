@@ -3,10 +3,15 @@ import {
   buildingColour,
   charFromFloor,
   dataStreamChar,
+  dimColour,
   floorColour,
 } from "@/lib/raycaster/chars";
 import type { FrameData } from "@/lib/raycaster/engine";
-import { FLOOR_TEXTURE, sampleTexture } from "@/lib/raycaster/textures";
+import {
+  FLOOR_TEXTURE,
+  sampleTexture,
+  selectTexture,
+} from "@/lib/raycaster/textures";
 
 const CHAR_W = 5;
 const CHAR_H = 9;
@@ -49,14 +54,36 @@ function drawColumn(
   camY: number,
   horizon: number,
 ): void {
-  const { wallTop, charHeight, distance, mapX, mapY, rayAngle } = data;
+  const {
+    wallTop,
+    charHeight,
+    distance,
+    mapX,
+    mapY,
+    rayAngle,
+    wallU,
+    heightInCells,
+    cellHeight,
+  } = data;
   const wallBottom = wallTop + charHeight;
   const colour = buildingColour(mapX, mapY, distance);
+  const dark = dimColour(colour, 0.35);
+  const tex = selectTexture(cellHeight);
 
   for (let row = 0; row < rows; row++) {
     if (row >= wallTop && row < wallBottom) {
-      ctx.fillStyle = colour;
-      ctx.fillText(dataStreamChar(screenCol, row - wallTop), x, row * CHAR_H);
+      // Sample the building texture (UV) to get window-vs-spandrel banding.
+      const v = ((row - wallTop) / Math.max(1, charHeight)) * heightInCells;
+      const brightness = sampleTexture(tex, wallU, v);
+      if (brightness > 110) {
+        // Window / brick face — bright data-stream glyph in building colour
+        ctx.fillStyle = colour;
+        ctx.fillText(dataStreamChar(screenCol, row - wallTop), x, row * CHAR_H);
+      } else {
+        // Spandrel / mortar — dim, sparse char so structure reads as banding
+        ctx.fillStyle = dark;
+        ctx.fillText(":", x, row * CHAR_H);
+      }
     } else if (row > horizon) {
       drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
     }

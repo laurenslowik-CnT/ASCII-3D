@@ -48,6 +48,18 @@ export function buildingColour(
   return `rgb(${Math.round(r * brightness)},${Math.round(g * brightness)},${Math.round(b * brightness)})`;
 }
 
+// Dim an rgb(...) colour string toward black by a factor (0..1).
+export function dimColour(rgb: string, factor: number): string {
+  const m = rgb.match(/\d+/g);
+  if (!m || m.length < 3) {
+    return rgb;
+  }
+  const r = Math.round(Number(m[0]) * factor);
+  const g = Math.round(Number(m[1]) * factor);
+  const b = Math.round(Number(m[2]) * factor);
+  return `rgb(${r},${g},${b})`;
+}
+
 // ── Data-stream wall characters ───────────────────────────────────────────────
 // Alphanumeric + symbol set gives the "city made of data" look.
 // Character is selected by screen column + wall row so it appears to scroll
