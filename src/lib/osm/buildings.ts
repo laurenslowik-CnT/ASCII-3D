@@ -5,7 +5,7 @@ import type { Building } from "@/lib/grid/types";
 const overpassWaySchema = z.object({
   type: z.literal("way"),
   geometry: z.array(z.object({ lat: z.number(), lon: z.number() })),
-  tags: z.record(z.string()).optional(),
+  tags: z.record(z.string(), z.string()).optional(),
 });
 
 const overpassResponseSchema = z.object({
