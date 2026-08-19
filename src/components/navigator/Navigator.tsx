@@ -60,6 +60,38 @@ async function geocodeOne(address: string): Promise<LatLng> {
   return latLngSchema.parse(await res.json());
 }
 
+// ── Cell placement ───────────────────────────────────────────────────────────
+
+// Spiral outward from (col,row) to find the nearest passable (empty) cell,
+// so the camera never spawns inside a building.
+function isOpenCell(grid: Grid, c: number, r: number): boolean {
+  if (c < 0 || r < 0 || c >= grid.cols || r >= grid.rows) {
+    return false;
+  }
+  return grid.data[r * grid.cols + c] === 0;
+}
+
+function nearestOpenCell(
+  grid: Grid,
+  col: number,
+  row: number,
+): { col: number; row: number } {
+  if (isOpenCell(grid, col, row)) {
+    return { col, row };
+  }
+  for (let radius = 1; radius < 200; radius++) {
+    for (let dc = -radius; dc <= radius; dc++) {
+      for (let dr = -radius; dr <= radius; dr++) {
+        const onRing = Math.abs(dc) === radius || Math.abs(dr) === radius;
+        if (onRing && isOpenCell(grid, col + dc, row + dr)) {
+          return { col: col + dc, row: row + dr };
+        }
+      }
+    }
+  }
+  return { col, row }; // fallback — should never happen in a real city
+}
+
 // ── Error banner ───────────────────────────────────────────────────────────────
 
 function ErrorBanner({ error }: { readonly error: string | null }) {
@@ -112,12 +144,16 @@ function useGridLoader() {
           return;
         }
         dispatch({ type: "SET_GRID", grid, meta });
+        // Start at 1 World Trade Center, downtown Manhattan — snapped to the
+        // nearest open street cell so we don't spawn inside the tower.
+        const wtc = latLngToCell({ lat: 40.7127, lng: -74.0134 }, meta);
+        const start = nearestOpenCell(grid, wtc.col, wtc.row);
         dispatch({
           type: "SET_CAMERA",
           camera: {
-            x: Math.floor(meta.cols / 2) + 0.5,
-            y: Math.floor(meta.rows / 2) + 0.5,
-            angle: 0,
+            x: start.col + 0.5,
+            y: start.row + 0.5,
+            angle: Math.PI / 2, // face north up the island
             fov: (Math.PI * 5) / 12,
             pitch: 0,
           },

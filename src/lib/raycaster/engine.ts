@@ -132,11 +132,15 @@ export function buildFrameData(
 
     const correctedDist = hit.distance * Math.cos(rayAngle - camera.angle);
     const heightInCells = hit.cellHeight / cellSize;
-    const wallHeight = Math.min(
-      rows * 2,
-      Math.floor((rows * heightInCells) / correctedDist),
-    );
-    const wallTop = Math.floor(horizon - wallHeight / 2);
+
+    // Grounded projection: the wall stands on the street. The base (y=0)
+    // projects near the horizon; the top rises upward by the building height.
+    // This lets sky show above shorter/distant buildings and floor show below.
+    const EYE_HEIGHT_CELLS = 0.25; // ~2.5m eye height in 10m cells
+    const screenBottom = horizon + (rows * EYE_HEIGHT_CELLS) / correctedDist;
+    const screenTop = screenBottom - (rows * heightInCells) / correctedDist;
+    const wallTop = Math.floor(screenTop);
+    const wallHeight = Math.max(1, Math.floor(screenBottom - screenTop));
 
     const hitX = camera.x + hit.distance * Math.cos(rayAngle);
     const hitY = camera.y + hit.distance * Math.sin(rayAngle);
