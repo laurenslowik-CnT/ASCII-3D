@@ -86,7 +86,17 @@ function drawColumn(
     heightInCells,
   } = data;
   const wallBottom = wallTop + charHeight;
-  const [br, bg, bb] = buildingRGB(mapX, mapY);
+
+  // Parameterise along the WHOLE building face using continuous world
+  // coordinates, so colour and windows flow across grid-cell boundaries as one
+  // UV-mapped surface instead of resetting every 8 m cell (the "tile" artifact).
+  // For an EW face the wall runs along Y, so mapY + wallU == world Y; for an NS
+  // face it runs along X, so mapX + wallU == world X.
+  const along = (face === "EW" ? mapY : mapX) + wallU;
+  const wallId = face === "EW" ? mapX : mapY; // constant across the whole face
+  const faceKey = face === "EW" ? 0 : 1;
+
+  const [br, bg, bb] = buildingRGB(wallId, faceKey);
   const buildingHeightM = heightInCells * cellSize;
 
   // Neutral directional light gives each face form without a hard night look.
@@ -96,7 +106,7 @@ function drawColumn(
   const depth = 0.4 + 0.6 * Math.max(0, 1 - distance / MAX_RENDER_DIST);
 
   const col = Math.round(x / CHAR_W);
-  const bayPosRaw = (wallU * cellSize) / BAY_WIDTH_M;
+  const bayPosRaw = (along * cellSize) / BAY_WIDTH_M;
   const bayIdx = Math.floor(bayPosRaw);
   const bayPos = ((bayPosRaw % 1) + 1) % 1;
   const onMullion = bayPos < MULLION_FRAC;
@@ -111,9 +121,11 @@ function drawColumn(
       const structural = isSpandrel || onMullion;
 
       // Concrete slab/mullion reads as matte; glass panes vary pane-to-pane.
+      // Keyed on the face (wallId/faceKey) + continuous bay/floor, so the window
+      // grid is one surface across the wall rather than per-cell noise.
       const base = structural
         ? 0.55
-        : windowLevel(mapX, mapY, floorIdx, bayIdx);
+        : windowLevel(wallId, faceKey, floorIdx, bayIdx);
 
       // Per-cell dither breaks the quantised "lego brick" blocks into grain.
       const dither = (cellNoise(col, row) - 0.5) * 0.14;
