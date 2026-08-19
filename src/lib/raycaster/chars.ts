@@ -72,23 +72,26 @@ function paletteChar(b: number, palette: string): string {
   return palette[Math.max(0, Math.min(palette.length - 1, idx))] ?? " ";
 }
 
-// Glass curtain wall — vertical strokes suggest window panes; spandrel fades out
-//   dark (spandrel) →  ' ; ! | I |  ← bright (glass reflection)
-const GLASS_PALETTE = "  ';!||II|";
+// Glass curtain wall — vertical strokes throughout; spandrel gets subtle char,
+// not space, so the whole surface stays visible.
+//   dark (spandrel=35) → ' ; ! | I  ← bright (glass=217)
+const GLASS_PALETTE = "'';;!!||II";
 export function charFromGlass(b: number): string {
   return paletteChar(b, GLASS_PALETTE);
 }
 
-// Brick / masonry — chunky chars for solid mass; dots for mortar joints
-//   dark (mortar) →  . , : = + # @ ← bright (brick highlight)
-const BRICK_PALETTE = " .,:=+#@@";
+// Brick / masonry — mortar shows as dots (not space) so joints read as texture,
+// brick face ramps up through chunky chars.
+//   dark (mortar=28) → . , : = + # @ ← bright (face=172-199)
+const BRICK_PALETTE = ".,,::=++#@";
 export function charFromBrick(b: number): string {
   return paletteChar(b, BRICK_PALETTE);
 }
 
-// Pavement / floor — subtle surface texture, mostly empty at distance
-//   dark (far concrete) →  . , ; : ← bright (close concrete)
-const FLOOR_PALETTE = "   ..,;:=";
+// Pavement / floor — spaces OK here because the floor is distance-dimmed
+// separately; only very close floor needs visible chars.
+//   dark (far) →  . , ; : ← bright (near)
+const FLOOR_PALETTE = "   ...,,;:";
 export function charFromFloor(b: number): string {
   return paletteChar(b, FLOOR_PALETTE);
 }
