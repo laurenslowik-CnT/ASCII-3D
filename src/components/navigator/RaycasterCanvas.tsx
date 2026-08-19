@@ -82,6 +82,7 @@ export function RaycasterCanvas({
       cam.pitch,
       cam.angle,
       cam.fov,
+      cellSize,
     );
 
     rafRef.current = requestAnimationFrame(loop);

@@ -7,11 +7,7 @@ import {
   floorColour,
 } from "@/lib/raycaster/chars";
 import type { FrameData } from "@/lib/raycaster/engine";
-import {
-  FLOOR_TEXTURE,
-  sampleTexture,
-  selectTexture,
-} from "@/lib/raycaster/textures";
+import { FLOOR_TEXTURE, sampleTexture } from "@/lib/raycaster/textures";
 
 const CHAR_W = 5;
 const CHAR_H = 9;
@@ -44,6 +40,12 @@ function drawFloorRow(
   ctx.fillText(charFromFloor(dimmed), x, row * CHAR_H);
 }
 
+// Real-world building structure (metres)
+const FLOOR_HEIGHT_M = 4; // one storey
+const SPANDREL_FRAC = 0.32; // bottom third of each storey is the slab/spandrel
+const BAY_WIDTH_M = 3.5; // horizontal window bay
+const MULLION_FRAC = 0.18; // edge of each bay is a mullion
+
 function drawColumn(
   ctx: Ctx,
   data: FrameData,
@@ -53,6 +55,7 @@ function drawColumn(
   camX: number,
   camY: number,
   horizon: number,
+  cellSize: number,
 ): void {
   const {
     wallTop,
@@ -63,26 +66,32 @@ function drawColumn(
     rayAngle,
     wallU,
     heightInCells,
-    cellHeight,
   } = data;
   const wallBottom = wallTop + charHeight;
   const colour = buildingColour(mapX, mapY, distance);
-  const dark = dimColour(colour, 0.35);
-  const tex = selectTexture(cellHeight);
+  const dark = dimColour(colour, 0.3);
+  const buildingHeightM = heightInCells * cellSize;
+
+  // Horizontal mullion test (constant down the column)
+  const bayPos = ((((wallU * cellSize) / BAY_WIDTH_M) % 1) + 1) % 1;
+  const onMullion = bayPos < MULLION_FRAC;
 
   for (let row = 0; row < rows; row++) {
     if (row >= wallTop && row < wallBottom) {
-      // Sample the building texture (UV) to get window-vs-spandrel banding.
-      const v = ((row - wallTop) / Math.max(1, charHeight)) * heightInCells;
-      const brightness = sampleTexture(tex, wallU, v);
-      if (brightness > 110) {
-        // Window / brick face — bright data-stream glyph in building colour
+      // Height above street (metres) at this screen row — perspective correct
+      const fracFromTop = (row - wallTop) / Math.max(1, charHeight);
+      const heightM = (1 - fracFromTop) * buildingHeightM;
+      const withinFloor = (heightM / FLOOR_HEIGHT_M) % 1;
+      const isSpandrel = withinFloor < SPANDREL_FRAC;
+
+      if (isSpandrel || onMullion) {
+        // Floor slab or window mullion — dim structural band
+        ctx.fillStyle = dark;
+        ctx.fillText("-", x, row * CHAR_H);
+      } else {
+        // Window glass — bright data-stream glyph in building colour
         ctx.fillStyle = colour;
         ctx.fillText(dataStreamChar(screenCol, row - wallTop), x, row * CHAR_H);
-      } else {
-        // Spandrel / mortar — dim, sparse char so structure reads as banding
-        ctx.fillStyle = dark;
-        ctx.fillText(":", x, row * CHAR_H);
       }
     } else if (row > horizon) {
       drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
@@ -101,6 +110,7 @@ export function renderFrame(
   pitch = 0,
   camAngle = 0,
   camFov = Math.PI / 3,
+  cellSize = 10,
 ): void {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -122,7 +132,7 @@ export function renderFrame(
       data?.rayAngle ?? camAngle - camFov / 2 + (col / cols) * camFov;
 
     if (data) {
-      drawColumn(ctx, data, col, x, rows, camX, camY, horizon);
+      drawColumn(ctx, data, col, x, rows, camX, camY, horizon, cellSize);
     } else {
       // No wall hit — only render floor below horizon, sky stays black
       for (let row = Math.ceil(horizon); row < rows; row++) {
