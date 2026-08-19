@@ -110,6 +110,8 @@ export type FrameData = {
   wallU: number;
   heightInCells: number;
   rayAngle: number;
+  mapX: number; // grid col of hit cell (for per-building color)
+  mapY: number; // grid row of hit cell
 };
 
 export function buildFrameData(
@@ -150,6 +152,8 @@ export function buildFrameData(
       wallU,
       heightInCells,
       rayAngle,
+      mapX: hit.mapX,
+      mapY: hit.mapY,
     };
   });
 }

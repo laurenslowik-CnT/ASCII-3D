@@ -40,6 +40,8 @@ describe("renderFrame", () => {
         wallU: 0.5,
         heightInCells: 2.5,
         rayAngle: 0,
+        mapX: 3,
+        mapY: 3,
       },
     ];
     renderFrame(frameData, canvas, 1, 10);

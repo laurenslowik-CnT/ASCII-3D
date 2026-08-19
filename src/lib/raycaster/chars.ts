@@ -1,7 +1,7 @@
 // src/lib/raycaster/chars.ts
 
-// Sky characters — sparse
-export const SKY = [" ", " ", " ", "·", " "] as const;
+// Sky characters — not used (sky is pure black), kept for overhead map
+export const SKY = [" ", " ", " ", " ", " "] as const;
 
 // Overhead map characters
 export const OVERHEAD_BUILDING = "█";
@@ -18,80 +18,69 @@ export function distanceBand(distance: number): number {
   return Math.min(4, Math.floor((distance / MAX_RENDER_DIST) * 5));
 }
 
-// IBM CGA palette — discrete colors by distance band
-// NS faces: yellow up close fading into blue
-const WALL_NS_COLORS: readonly string[] = [
-  "#ffff55", // band 0 — bright yellow
-  "#ffffff", // band 1 — white
-  "#5555ff", // band 2 — bright blue
-  "#0000aa", // band 3 — blue
-  "#000055", // band 4 — dark blue
+// ── Per-building color ─────────────────────────────────────────────────────────
+// Each building gets a CGA color based on its grid position hash.
+// Distance dims the color toward black.
+
+const BUILDING_PALETTE: readonly string[] = [
+  "#5555ff", // blue
+  "#ff5555", // red
+  "#55ffff", // cyan
+  "#ffff55", // yellow
+  "#55ff55", // green
+  "#ff55ff", // magenta
 ];
 
-// EW faces: white fading into blue (no yellow — yellow only on direct face)
-const WALL_EW_COLORS: readonly string[] = [
-  "#ffffff", // band 0 — white
-  "#5555ff", // band 1 — bright blue
-  "#0000aa", // band 2 — blue
-  "#000055", // band 3 — dark blue
-  "#000033", // band 4 — near-black blue
-];
-
-export function wallColour(distance: number, face: "NS" | "EW"): string {
-  const band = distanceBand(distance);
-  const palette = face === "NS" ? WALL_NS_COLORS : WALL_EW_COLORS;
-  return palette[band] ?? "#000033";
+export function buildingColour(
+  mapX: number,
+  mapY: number,
+  distance: number,
+): string {
+  const hash = Math.abs(
+    ((mapX * 1597) ^ (mapY * 2053)) % BUILDING_PALETTE.length,
+  );
+  const hex = BUILDING_PALETTE[hash] ?? "#5555ff";
+  const t = Math.max(0, 1 - distance / MAX_RENDER_DIST);
+  const brightness = Math.max(0.08, t ** 0.9);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${Math.round(r * brightness)},${Math.round(g * brightness)},${Math.round(b * brightness)})`;
 }
 
-// Floor — IBM blue gradient, bright near feet
-const FLOOR_COLORS: readonly string[] = [
-  "#0000aa",
-  "#000077",
-  "#000055",
-  "#000033",
-  "#000022",
+// ── Data-stream wall characters ───────────────────────────────────────────────
+// Alphanumeric + symbol set gives the "city made of data" look.
+// Character is selected by screen column + wall row so it appears to scroll
+// as you move, matching the reference video's Matrix-style streams.
+
+const DATA_CHARS = "0123456789ABCDEFabcdef.:=+-|/!;,#@%*~^<>";
+
+export function dataStreamChar(screenCol: number, wallRow: number): string {
+  const idx =
+    (((screenCol * 7 + wallRow * 3) % DATA_CHARS.length) + DATA_CHARS.length) %
+    DATA_CHARS.length;
+  return DATA_CHARS[idx] ?? "0";
+}
+
+// ── Floor ─────────────────────────────────────────────────────────────────────
+
+// Floor colour — dark grey, brighter near camera
+const FLOOR_COLOURS: readonly string[] = [
+  "#333333",
+  "#222222",
+  "#1a1a1a",
+  "#111111",
+  "#0a0a0a",
 ];
 
 export function floorColour(band: number): string {
-  return FLOOR_COLORS[band] ?? "#000022";
+  return FLOOR_COLOURS[band] ?? "#0a0a0a";
 }
 
-// Sky — near-black blue throughout
-export function skyColour(): string {
-  return "#000022";
-}
+// Floor character — perspective lines suggest a street grid
+const FLOOR_CHARS = "   ...,,;:";
 
-// ── Per-material character palettes ──────────────────────────────────────────
-//
-// Each palette is a string ordered dark→bright (index 0 = darkest texture
-// pixel, index N = brightest). Characters are chosen for visual semantics —
-// what the surface *looks like* — rather than generic density.
-
-function paletteChar(b: number, palette: string): string {
-  const idx = Math.floor((b / 255) * (palette.length - 1));
-  return palette[Math.max(0, Math.min(palette.length - 1, idx))] ?? " ";
-}
-
-// Glass curtain wall — vertical strokes throughout; spandrel gets subtle char,
-// not space, so the whole surface stays visible.
-//   dark (spandrel=35) → ' ; ! | I  ← bright (glass=217)
-const GLASS_PALETTE = "'';;!!||II";
-export function charFromGlass(b: number): string {
-  return paletteChar(b, GLASS_PALETTE);
-}
-
-// Brick / masonry — mortar shows as dots (not space) so joints read as texture,
-// brick face ramps up through chunky chars.
-//   dark (mortar=28) → . , : = + # @ ← bright (face=172-199)
-const BRICK_PALETTE = ".,,::=++#@";
-export function charFromBrick(b: number): string {
-  return paletteChar(b, BRICK_PALETTE);
-}
-
-// Pavement / floor — spaces OK here because the floor is distance-dimmed
-// separately; only very close floor needs visible chars.
-//   dark (far) →  . , ; : ← bright (near)
-const FLOOR_PALETTE = "   ...,,;:";
 export function charFromFloor(b: number): string {
-  return paletteChar(b, FLOOR_PALETTE);
+  const idx = Math.floor((b / 255) * (FLOOR_CHARS.length - 1));
+  return FLOOR_CHARS[Math.max(0, Math.min(FLOOR_CHARS.length - 1, idx))] ?? " ";
 }

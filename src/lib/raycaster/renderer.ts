@@ -1,25 +1,15 @@
 // src/lib/raycaster/renderer.ts
 import {
-  charFromBrick,
+  buildingColour,
   charFromFloor,
-  charFromGlass,
+  dataStreamChar,
   floorColour,
-  SKY,
-  skyColour,
-  wallColour,
 } from "@/lib/raycaster/chars";
 import type { FrameData } from "@/lib/raycaster/engine";
-import {
-  FLOOR_TEXTURE,
-  sampleTexture,
-  selectTexture,
-} from "@/lib/raycaster/textures";
+import { FLOOR_TEXTURE, sampleTexture } from "@/lib/raycaster/textures";
 
 const CHAR_W = 5;
 const CHAR_H = 9;
-
-// Buildings taller than this (metres) use the glass palette; shorter use brick
-const GLASS_HEIGHT_THRESHOLD = 20;
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -43,53 +33,34 @@ function drawFloorRow(
   const u = ((wx % 1) + 1) % 1;
   const v = ((wy % 1) + 1) % 1;
   const raw = sampleTexture(FLOOR_TEXTURE, u, v);
-  const dimmed = Math.floor(raw * Math.max(0.05, 1 - floorDist / 18));
+  const dimmed = Math.floor(raw * Math.max(0.04, 1 - floorDist / 16));
   const band = Math.min(4, Math.floor(floorDist / 4));
   ctx.fillStyle = floorColour(band);
   ctx.fillText(charFromFloor(dimmed), x, row * CHAR_H);
 }
 
-function drawSkyRow(ctx: Ctx, x: number, row: number, horizon: number): void {
-  const band = Math.min(4, Math.floor((row / Math.max(1, horizon)) * 5));
-  ctx.fillStyle = skyColour();
-  ctx.fillText(SKY[band], x, row * CHAR_H);
-}
-
 function drawColumn(
   ctx: Ctx,
   data: FrameData,
+  screenCol: number,
   x: number,
   rows: number,
   camX: number,
   camY: number,
   horizon: number,
 ): void {
-  const {
-    wallTop,
-    charHeight,
-    wallU,
-    heightInCells,
-    distance,
-    face,
-    cellHeight,
-    rayAngle,
-  } = data;
+  const { wallTop, charHeight, distance, mapX, mapY, rayAngle } = data;
   const wallBottom = wallTop + charHeight;
-  const tex = selectTexture(cellHeight);
-  const charFromMaterial =
-    cellHeight > GLASS_HEIGHT_THRESHOLD ? charFromGlass : charFromBrick;
+  const colour = buildingColour(mapX, mapY, distance);
 
   for (let row = 0; row < rows; row++) {
     if (row >= wallTop && row < wallBottom) {
-      const v = ((row - wallTop) / Math.max(1, charHeight)) * heightInCells;
-      const brightness = sampleTexture(tex, wallU, v);
-      ctx.fillStyle = wallColour(distance, face);
-      ctx.fillText(charFromMaterial(brightness), x, row * CHAR_H);
+      ctx.fillStyle = colour;
+      ctx.fillText(dataStreamChar(screenCol, row - wallTop), x, row * CHAR_H);
     } else if (row > horizon) {
       drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
-    } else {
-      drawSkyRow(ctx, x, row, horizon);
     }
+    // sky rows: leave black (no fillText)
   }
 }
 
@@ -109,6 +80,7 @@ export function renderFrame(
     return;
   }
 
+  // Pure black background — sky is never drawn over
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.font = `${CHAR_H}px monospace`;
@@ -123,14 +95,11 @@ export function renderFrame(
       data?.rayAngle ?? camAngle - camFov / 2 + (col / cols) * camFov;
 
     if (data) {
-      drawColumn(ctx, data, x, rows, camX, camY, horizon);
+      drawColumn(ctx, data, col, x, rows, camX, camY, horizon);
     } else {
-      for (let row = 0; row < rows; row++) {
-        if (row > horizon) {
-          drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
-        } else {
-          drawSkyRow(ctx, x, row, horizon);
-        }
+      // No wall hit — only render floor below horizon, sky stays black
+      for (let row = Math.ceil(horizon); row < rows; row++) {
+        drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
       }
     }
   }
