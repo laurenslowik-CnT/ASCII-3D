@@ -1,10 +1,11 @@
 // src/lib/raycaster/renderer.ts
 import {
-  buildingColour,
+  buildingRGB,
   charFromFloor,
-  dataStreamChar,
-  dimColour,
   floorColour,
+  luminanceToChar,
+  MAX_RENDER_DIST,
+  shadeRGB,
 } from "@/lib/raycaster/chars";
 import type { FrameData } from "@/lib/raycaster/engine";
 import { FLOOR_TEXTURE, sampleTexture } from "@/lib/raycaster/textures";
@@ -42,14 +43,28 @@ function drawFloorRow(
 
 // Real-world building structure (metres)
 const FLOOR_HEIGHT_M = 4; // one storey
-const SPANDREL_FRAC = 0.32; // bottom third of each storey is the slab/spandrel
+const SPANDREL_FRAC = 0.3; // bottom of each storey is the concrete slab
 const BAY_WIDTH_M = 3.5; // horizontal window bay
-const MULLION_FRAC = 0.18; // edge of each bay is a mullion
+const MULLION_FRAC = 0.16; // edge of each bay is a mullion
+
+function litWindowHash(
+  mapX: number,
+  mapY: number,
+  floorIdx: number,
+  bayIdx: number,
+): number {
+  const h =
+    (Math.imul(floorIdx, 73856093) ^
+      Math.imul(bayIdx, 19349663) ^
+      Math.imul(mapX, 83492791) ^
+      Math.imul(mapY, 2971215073)) >>>
+    0;
+  return h % 100;
+}
 
 function drawColumn(
   ctx: Ctx,
   data: FrameData,
-  screenCol: number,
   x: number,
   rows: number,
   camX: number,
@@ -61,6 +76,7 @@ function drawColumn(
     wallTop,
     charHeight,
     distance,
+    face,
     mapX,
     mapY,
     rayAngle,
@@ -68,35 +84,50 @@ function drawColumn(
     heightInCells,
   } = data;
   const wallBottom = wallTop + charHeight;
-  const colour = buildingColour(mapX, mapY, distance);
-  const dark = dimColour(colour, 0.3);
+  const rgb = buildingRGB(mapX, mapY);
   const buildingHeightM = heightInCells * cellSize;
 
-  // Horizontal mullion test (constant down the column)
-  const bayPos = ((((wallU * cellSize) / BAY_WIDTH_M) % 1) + 1) % 1;
+  // Directional light: faces pointing one way are brighter than the other.
+  const faceShade = face === "NS" ? 1 : 0.72;
+  // Distance fog — never fully black so far buildings still read.
+  const fog = 0.24 + 0.76 * Math.max(0, 1 - distance / MAX_RENDER_DIST);
+
+  const bayPosRaw = (wallU * cellSize) / BAY_WIDTH_M;
+  const bayIdx = Math.floor(bayPosRaw);
+  const bayPos = ((bayPosRaw % 1) + 1) % 1;
   const onMullion = bayPos < MULLION_FRAC;
 
   for (let row = 0; row < rows; row++) {
     if (row >= wallTop && row < wallBottom) {
-      // Height above street (metres) at this screen row — perspective correct
       const fracFromTop = (row - wallTop) / Math.max(1, charHeight);
       const heightM = (1 - fracFromTop) * buildingHeightM;
+      const floorIdx = Math.floor(heightM / FLOOR_HEIGHT_M);
       const withinFloor = (heightM / FLOOR_HEIGHT_M) % 1;
       const isSpandrel = withinFloor < SPANDREL_FRAC;
 
-      if (isSpandrel || onMullion) {
-        // Floor slab or window mullion — dim structural band
-        ctx.fillStyle = dark;
-        ctx.fillText("-", x, row * CHAR_H);
-      } else {
-        // Window glass — bright data-stream glyph in building colour
-        ctx.fillStyle = colour;
-        ctx.fillText(dataStreamChar(screenCol, row - wallTop), x, row * CHAR_H);
+      // Structural darkening: slabs and mullions read as darker luminance.
+      const structure = isSpandrel || onMullion ? 0.42 : 1;
+
+      // Some windows are lit — scattered warm glow, the cyberpunk-night feel.
+      const lit =
+        !isSpandrel &&
+        !onMullion &&
+        litWindowHash(mapX, mapY, floorIdx, bayIdx) < 16;
+
+      let luminance = faceShade * fog * structure;
+      let glow = 0;
+      if (lit) {
+        luminance = Math.min(1, fog * 1.2);
+        glow = 0.55;
       }
+
+      // The camera-perspective mapping: brightness picks the glyph.
+      ctx.fillStyle = shadeRGB(rgb, Math.min(1, luminance * 1.1), glow);
+      ctx.fillText(luminanceToChar(luminance), x, row * CHAR_H);
     } else if (row > horizon) {
       drawFloorRow(ctx, x, row, rayAngle, horizon, camX, camY);
     }
-    // sky rows: leave black (no fillText)
+    // sky rows: leave black
   }
 }
 
@@ -132,7 +163,7 @@ export function renderFrame(
       data?.rayAngle ?? camAngle - camFov / 2 + (col / cols) * camFov;
 
     if (data) {
-      drawColumn(ctx, data, col, x, rows, camX, camY, horizon, cellSize);
+      drawColumn(ctx, data, x, rows, camX, camY, horizon, cellSize);
     } else {
       // No wall hit — only render floor below horizon, sky stays black
       for (let row = Math.ceil(horizon); row < rows; row++) {
