@@ -10,7 +10,7 @@
 // buffer (as produced by `CanvasRenderingContext2D.getImageData` or, after a
 // vertical flip, `WebGLRenderingContext.readPixels`), so it is pure and testable.
 
-import { luminanceToChar } from "@/lib/raycaster/chars";
+import { cellNoise, luminanceToChar } from "@/lib/raycaster/chars";
 
 export type AsciiCell = {
   char: string;
@@ -23,6 +23,12 @@ export type AsciiCell = {
 const R_WEIGHT = 0.299;
 const G_WEIGHT = 0.587;
 const B_WEIGHT = 0.114;
+
+// Per-cell brightness jitter (fraction) so flat-coloured regions break into
+// varied glyphs instead of a solid block. Multiplicative, so pure black stays
+// black (empty stays empty); keyed on cell position so it's a stable grain that
+// doesn't shimmer as the view moves.
+const DITHER = 0.3;
 
 // Average one character cell's block of pixels and turn it into an AsciiCell.
 function cellFromBlock(
@@ -56,8 +62,9 @@ function cellFromBlock(
   const g = gSum / count;
   const b = bSum / count;
   const luminance = (R_WEIGHT * r + G_WEIGHT * g + B_WEIGHT * b) / 255;
+  const dithered = luminance * (1 + (cellNoise(x0, y0) - 0.5) * DITHER);
   return {
-    char: luminanceToChar(luminance),
+    char: luminanceToChar(dithered),
     r: Math.round(r),
     g: Math.round(g),
     b: Math.round(b),
@@ -94,4 +101,91 @@ export function framebufferToAscii(
     }
   }
   return { cells, cols, rows };
+}
+
+// ── Colour legibility ─────────────────────────────────────────────────────────
+//
+// On a black background the glyph already encodes brightness, so if colour ALSO
+// darkens with the pixel, dark regions get a sparse glyph AND a near-black tint
+// and vanish. legibleColor separates the channels: keep hue, boost saturation so
+// map categories stay distinct, and remap lightness into a floored band so no
+// drawn glyph is ever too dark to read. Tune the constants to taste.
+const SAT_BOOST = 1.5; // multiply saturation (muted map tones → distinct hues)
+const SAT_FLOOR = 0.1; // minimum saturation so near-greys still carry a tint
+const LIGHT_FLOOR = 0.45; // darkest a drawn glyph may be
+const LIGHT_CEIL = 0.92; // brightest, so highlights don't clip to pure white
+
+function clamp01(v: number): number {
+  return Math.max(0, Math.min(1, v));
+}
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const l = (max + min) / 2;
+  if (max === min) {
+    return [0, 0, l];
+  }
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === rn) {
+    h = (gn - bn) / d + (gn < bn ? 6 : 0);
+  } else if (max === gn) {
+    h = (bn - rn) / d + 2;
+  } else {
+    h = (rn - gn) / d + 4;
+  }
+  return [h / 6, s, l];
+}
+
+function hueToChannel(p: number, q: number, tRaw: number): number {
+  let t = tRaw;
+  if (t < 0) {
+    t += 1;
+  }
+  if (t > 1) {
+    t -= 1;
+  }
+  if (t < 1 / 6) {
+    return p + (q - p) * 6 * t;
+  }
+  if (t < 1 / 2) {
+    return q;
+  }
+  if (t < 2 / 3) {
+    return p + (q - p) * (2 / 3 - t) * 6;
+  }
+  return p;
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  if (s === 0) {
+    const v = Math.round(l * 255);
+    return [v, v, v];
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return [
+    Math.round(hueToChannel(p, q, h + 1 / 3) * 255),
+    Math.round(hueToChannel(p, q, h) * 255),
+    Math.round(hueToChannel(p, q, h - 1 / 3) * 255),
+  ];
+}
+
+// Retint an averaged cell colour for maximum legibility on black.
+export function legibleColor(
+  r: number,
+  g: number,
+  b: number,
+): [number, number, number] {
+  const [h, s, l] = rgbToHsl(r, g, b);
+  // Keep near-greys neutral (roads, concrete) — adding a saturation floor to an
+  // achromatic colour would tint it red, since hue defaults to 0.
+  const s2 = s < 0.02 ? 0 : clamp01(s * SAT_BOOST + SAT_FLOOR);
+  const l2 = LIGHT_FLOOR + clamp01(l) * (LIGHT_CEIL - LIGHT_FLOOR);
+  return hslToRgb(h, s2, l2);
 }

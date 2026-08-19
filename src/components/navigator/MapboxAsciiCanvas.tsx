@@ -7,14 +7,14 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { env } from "@/env";
 import type { LatLng } from "@/lib/grid/types";
-import { framebufferToAscii } from "@/lib/raycaster/asciify";
+import { framebufferToAscii, legibleColor } from "@/lib/raycaster/asciify";
 
 // Character cell in pixels. A monospace glyph's ink at CHAR_H px is ~5.4 wide
 // but only ~0.72·CHAR_H tall, so a 5×9 cell renders real imagery ~1.5× wider
 // than tall (vertical "squish"). Widening the horizontal cell to ~8 matches the
 // horizontal ink fill to the vertical, so squares read square. Tune CHAR_W if
 // the map still looks stretched (larger = taller) or squished (smaller = wider).
-const CHAR_W = 8;
+const CHAR_W = 10;
 const CHAR_H = 9;
 const DEFAULT_STYLE = "mapbox://styles/laurenslowik/cmt0dd8r1001x01qjba6l6gz0";
 const ZOOM = 17.2;
@@ -65,7 +65,8 @@ function asciifyMapInto(
     for (let cx = 0; cx < cols; cx++) {
       const cell = cells[cy * cols + cx];
       if (cell && cell.char !== " ") {
-        ctx.fillStyle = `rgb(${cell.r},${cell.g},${cell.b})`;
+        const [r, g, b] = legibleColor(cell.r, cell.g, cell.b);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
         ctx.fillText(cell.char, cx * CHAR_W, cy * CHAR_H);
       }
     }
@@ -109,6 +110,72 @@ function applyKeys(map: mapboxgl.Map): boolean {
     moved = true;
   }
   return moved;
+}
+
+// Inject 3D building extrusions so the PHOTO view has depth regardless of what
+// the base style includes. We add our own Mapbox Streets vector source rather
+// than relying on the style's `composite`, so it works with any style. Colour
+// ramps by height for tonal variety; Mapbox lighting shades the faces, giving
+// the ASCII its brightness gradient.
+function addBuildingsLayer(
+  map: mapboxgl.Map,
+  onError: (message: string) => void,
+): void {
+  if (map.getLayer("ascii-3d-buildings")) {
+    return;
+  }
+  try {
+    if (!map.getSource("ascii-streets")) {
+      map.addSource("ascii-streets", {
+        type: "vector",
+        url: "mapbox://mapbox.mapbox-streets-v8",
+      });
+    }
+    map.addLayer({
+      id: "ascii-3d-buildings",
+      type: "fill-extrusion",
+      source: "ascii-streets",
+      "source-layer": "building",
+      minzoom: 14,
+      filter: ["==", ["get", "extrude"], "true"],
+      paint: {
+        "fill-extrusion-color": [
+          "interpolate",
+          ["linear"],
+          ["get", "height"],
+          0,
+          "#4a5a6a",
+          40,
+          "#7488a4",
+          120,
+          "#a9c0e0",
+          300,
+          "#dbe6f5",
+        ],
+        "fill-extrusion-height": ["get", "height"],
+        "fill-extrusion-base": ["get", "min_height"],
+        "fill-extrusion-opacity": 1,
+        // Dark base → light top on each wall, so a single face isn't one shade.
+        "fill-extrusion-vertical-gradient": true,
+        // Darken where buildings meet the ground and each other for depth.
+        "fill-extrusion-ambient-occlusion-intensity": 0.4,
+        "fill-extrusion-ambient-occlusion-radius": 3,
+      },
+    });
+    // Strong, low-angle directional light so building faces catch distinctly
+    // different amounts of light (front bright, sides dark) — that per-face
+    // contrast is what gives the ASCII its varied glyphs instead of flat blocks.
+    map.setLight({
+      anchor: "viewport",
+      color: "#ffffff",
+      intensity: 0.6,
+      position: [1.4, 210, 78],
+    });
+  } catch {
+    onError(
+      "This Mapbox style has no vector building source — use a Mapbox Streets-based style for 3D buildings.",
+    );
+  }
 }
 
 export function MapboxAsciiCanvas({ center, onError }: Props) {
@@ -165,6 +232,9 @@ export function MapboxAsciiCanvas({ center, onError }: Props) {
     });
     mapRef.current = map;
     sampleRef.current = document.createElement("canvas");
+    map.on("load", () => {
+      addBuildingsLayer(map, onErrorRef.current);
+    });
     map.on("render", render);
     map.on("error", (e) => {
       onErrorRef.current(`Mapbox: ${e.error.message}`);

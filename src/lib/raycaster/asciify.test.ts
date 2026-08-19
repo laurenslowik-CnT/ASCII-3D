@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { framebufferToAscii } from "@/lib/raycaster/asciify";
+import { framebufferToAscii, legibleColor } from "@/lib/raycaster/asciify";
 
 // Build a width×height RGBA buffer from a per-pixel colour function.
 function makeBuffer(
@@ -57,5 +57,40 @@ describe("framebufferToAscii", () => {
     expect(cell?.r).toBe(128);
     expect(cell?.g).toBe(128);
     expect(cell?.b).toBe(128);
+  });
+});
+
+describe("legibleColor", () => {
+  const FLOOR = Math.round(0.45 * 255); // LIGHT_FLOOR
+
+  it("lifts a dark colour above the lightness floor", () => {
+    // A near-black pixel would vanish on black; it must be lifted to be read.
+    const [r, g, b] = legibleColor(10, 0, 0);
+    expect(Math.max(r, g, b)).toBeGreaterThanOrEqual(FLOOR - 1);
+  });
+
+  it("preserves hue (a red stays red-dominant)", () => {
+    const [r, g, b] = legibleColor(90, 10, 10);
+    expect(r).toBeGreaterThan(g);
+    expect(r).toBeGreaterThan(b);
+  });
+
+  it("keeps greys neutral", () => {
+    const [r, g, b] = legibleColor(120, 120, 120);
+    expect(r).toBe(g);
+    expect(g).toBe(b);
+    expect(r).toBeGreaterThanOrEqual(FLOOR - 1);
+  });
+
+  it("boosts saturation of a muted colour", () => {
+    // A muted (low-saturation) blue should come out more saturated: the spread
+    // between the max and min channel widens.
+    const muted = { r: 90, g: 100, b: 130 };
+    const [r, g, b] = legibleColor(muted.r, muted.g, muted.b);
+    const inSpread =
+      Math.max(muted.r, muted.g, muted.b) - Math.min(muted.r, muted.g, muted.b);
+    const outSpread = Math.max(r, g, b) - Math.min(r, g, b);
+    expect(outSpread).toBeGreaterThan(inSpread);
+    expect(b).toBeGreaterThan(r); // still blue-dominant
   });
 });
