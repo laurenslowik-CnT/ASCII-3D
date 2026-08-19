@@ -119,6 +119,7 @@ function useGridLoader() {
             y: Math.floor(meta.rows / 2) + 0.5,
             angle: 0,
             fov: (Math.PI * 5) / 12,
+            pitch: 0,
           },
         });
       })
