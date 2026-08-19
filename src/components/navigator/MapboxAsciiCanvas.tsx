@@ -16,7 +16,10 @@ import { framebufferToAscii, legibleColor } from "@/lib/raycaster/asciify";
 // the map still looks stretched (larger = taller) or squished (smaller = wider).
 const CHAR_W = 10;
 const CHAR_H = 9;
-const DEFAULT_STYLE = "mapbox://styles/laurenslowik/cmt0dd8r1001x01qjba6l6gz0";
+// The PHOTO view needs a CLASSIC (Streets-based) style — Mapbox Standard runs
+// its own tone-mapping/lighting that washes our custom colours and ignores
+// setLight. dark-v11 gives a dark base so warm lit buildings pop on black.
+const DEFAULT_STYLE = "mapbox://styles/mapbox/dark-v11";
 const ZOOM = 17.2;
 const PITCH = 72;
 const PAN_PIXELS = 7; // forward/strafe speed per frame
@@ -139,18 +142,20 @@ function addBuildingsLayer(
       minzoom: 14,
       filter: ["==", ["get", "extrude"], "true"],
       paint: {
+        // Warm ramp by height so buildings read as a distinct hue against the
+        // cool/grey streets and water — colour, not just tone, separates them.
         "fill-extrusion-color": [
           "interpolate",
           ["linear"],
           ["get", "height"],
           0,
-          "#4a5a6a",
+          "#5c3a1e",
           40,
-          "#7488a4",
+          "#b06a2c",
           120,
-          "#a9c0e0",
+          "#e0a24e",
           300,
-          "#dbe6f5",
+          "#f6e0a8",
         ],
         "fill-extrusion-height": ["get", "height"],
         "fill-extrusion-base": ["get", "min_height"],
@@ -234,6 +239,10 @@ export function MapboxAsciiCanvas({ center, onError }: Props) {
     sampleRef.current = document.createElement("canvas");
     map.on("load", () => {
       addBuildingsLayer(map, onErrorRef.current);
+      // Resize once the style is up in case layout settled after map creation,
+      // so the canvas aspect matches the display (avoids a stretched sample).
+      map.resize();
+      render();
     });
     map.on("render", render);
     map.on("error", (e) => {

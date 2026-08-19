@@ -61,7 +61,7 @@ describe("framebufferToAscii", () => {
 });
 
 describe("legibleColor", () => {
-  const FLOOR = Math.round(0.45 * 255); // LIGHT_FLOOR
+  const FLOOR = Math.round(0.3 * 255); // LIGHT_FLOOR
 
   it("lifts a dark colour above the lightness floor", () => {
     // A near-black pixel would vanish on black; it must be lifted to be read.

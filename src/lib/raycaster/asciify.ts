@@ -110,13 +110,19 @@ export function framebufferToAscii(
 // and vanish. legibleColor separates the channels: keep hue, boost saturation so
 // map categories stay distinct, and remap lightness into a floored band so no
 // drawn glyph is ever too dark to read. Tune the constants to taste.
-const SAT_BOOST = 1.5; // multiply saturation (muted map tones → distinct hues)
-const SAT_FLOOR = 0.1; // minimum saturation so near-greys still carry a tint
-const LIGHT_FLOOR = 0.45; // darkest a drawn glyph may be
-const LIGHT_CEIL = 0.92; // brightest, so highlights don't clip to pure white
+const SAT_BOOST = 1.8; // multiply saturation (muted map tones → distinct hues)
+const SAT_FLOOR = 0.12; // minimum saturation so near-greys still carry a tint
+const LIGHT_FLOOR = 0.3; // darkest a drawn glyph may be (glyph shape carries the rest)
+const LIGHT_CEIL = 1; // brightest — allow lit faces to reach white for punch
 
 function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v));
+}
+
+// S-curve: pushes darks down and brights up, so categories (dark streets vs lit
+// buildings) separate instead of collapsing into one mid band.
+function contrastCurve(l: number): number {
+  return l * l * (3 - 2 * l);
 }
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -186,6 +192,9 @@ export function legibleColor(
   // Keep near-greys neutral (roads, concrete) — adding a saturation floor to an
   // achromatic colour would tint it red, since hue defaults to 0.
   const s2 = s < 0.02 ? 0 : clamp01(s * SAT_BOOST + SAT_FLOOR);
-  const l2 = LIGHT_FLOOR + clamp01(l) * (LIGHT_CEIL - LIGHT_FLOOR);
+  // Contrast-curve the lightness, then land it in the [floor, ceil] band so
+  // darks stay dark (but visible) and brights reach near-white.
+  const l2 =
+    LIGHT_FLOOR + contrastCurve(clamp01(l)) * (LIGHT_CEIL - LIGHT_FLOOR);
   return hslToRgb(h, s2, l2);
 }
