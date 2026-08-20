@@ -6,8 +6,6 @@ Type in any Manhattan address and you're dropped onto that street corner. Buildi
 
 **Try it live → [ascii-3d.vercel.app](https://ascii-3d.vercel.app)**
 
-![ASCII NYC Navigator cycling through its three views](docs/ascii-nyc-demo.gif)
-
 ## What you can do
 
 - **Search any address** — type a Manhattan address in the box, hit **Go**, and teleport there.
