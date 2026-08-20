@@ -112,6 +112,7 @@ export function MapboxAsciiCanvas({ center, onError }: Props) {
       center: [start.lng, start.lat],
       zoom: ZOOM,
       pitch: PITCH,
+      maxPitch: 85,
       bearing: 0,
       interactive: false,
       attributionControl: false,
