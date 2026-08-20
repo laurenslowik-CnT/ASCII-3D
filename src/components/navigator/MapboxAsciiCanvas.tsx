@@ -55,7 +55,7 @@ function initDrag(
     dragX = e.clientX;
     dragY = e.clientY;
     if (dx !== 0) {
-      map.panBy([dx, 0], { duration: 0 });
+      map.panBy([-dx, 0], { duration: 0 });
     }
     if (dy !== 0) {
       map.setPitch(Math.max(0, Math.min(85, map.getPitch() + dy * 0.15)));
