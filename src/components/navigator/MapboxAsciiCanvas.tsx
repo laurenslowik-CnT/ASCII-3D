@@ -50,7 +50,7 @@ function initDragPitch(
     }
     const delta = e.clientY - dragY;
     dragY = e.clientY;
-    map.setPitch(Math.max(0, Math.min(85, map.getPitch() - delta * 0.15)));
+    map.setPitch(Math.max(0, Math.min(85, map.getPitch() + delta * 0.15)));
   }
   function onMouseUp() {
     dragY = null;
