@@ -29,30 +29,40 @@ type Props = {
   readonly onError: (message: string) => void;
 };
 
-// Vertical drag on the display canvas adjusts pitch (horizon position).
-// Drag down → lower horizon; drag up → raise it. ~150 px ≈ 22°.
-function initDragPitch(
+// Drag on the display canvas: horizontal → pan, vertical → pitch.
+// Drag down → tilt up (higher pitch); drag up → tilt down. ~150 px ≈ 22°.
+function initDrag(
   canvas: HTMLCanvasElement,
   mapRef: { readonly current: mapboxgl.Map | null },
 ): () => void {
+  let dragX: number | null = null;
   let dragY: number | null = null;
   function onMouseDown(e: MouseEvent) {
+    dragX = e.clientX;
     dragY = e.clientY;
     canvas.style.cursor = "grabbing";
   }
   function onMouseMove(e: MouseEvent) {
-    if (dragY === null) {
+    if (dragX === null || dragY === null) {
       return;
     }
     const map = mapRef.current;
     if (!map) {
       return;
     }
-    const delta = e.clientY - dragY;
+    const dx = e.clientX - dragX;
+    const dy = e.clientY - dragY;
+    dragX = e.clientX;
     dragY = e.clientY;
-    map.setPitch(Math.max(0, Math.min(85, map.getPitch() + delta * 0.15)));
+    if (dx !== 0) {
+      map.panBy([dx, 0], { duration: 0 });
+    }
+    if (dy !== 0) {
+      map.setPitch(Math.max(0, Math.min(85, map.getPitch() + dy * 0.15)));
+    }
   }
   function onMouseUp() {
+    dragX = null;
     dragY = null;
     canvas.style.cursor = "grab";
   }
@@ -186,7 +196,7 @@ export function MapboxAsciiCanvas({ center, onError }: Props) {
     if (!canvas) {
       return;
     }
-    return initDragPitch(canvas, mapRef);
+    return initDrag(canvas, mapRef);
   }, []);
 
   useEffect(() => {
