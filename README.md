@@ -1,133 +1,101 @@
-# [Replace with client/project name]
+# ASCII NYC Navigator
 
-## Getting started
+**Walk around New York City, rendered entirely in ASCII art.**
 
-1. Clone this repo:
+Type in any Manhattan address and you're dropped onto that street corner. Buildings, avenues, and skyline all drawn with text characters — like a retro terminal that somehow became a city.
 
-```sh
-git clone git@github.com:codeandtheory/[client-project_name].git # update with the repo URL
-cd [client-project_name] # update
-```
+**Try it live → [ascii-3d.vercel.app](https://ascii-3d.vercel.app)**
 
-2. Use proper Node version:
+![ASCII NYC Navigator cycling through its three views](docs/ascii-nyc-demo.gif)
 
-```sh
-nvm use # or nvm install
-```
+## What you can do
 
-3. Install dependencies (please note we're using Yarn and not npm):
+- **Search any address** — type a Manhattan address in the box, hit **Go**, and teleport there.
+- **Walk around** — use the **arrow keys** (or **WASD**) to move and turn. Press **Q** / **E** to look up and down.
+- **Switch how the city looks** — press **Tab** (or the button in the top-right corner) to cycle between three views:
 
-```sh
-yarn
-```
+| View      | What it shows                                                            |
+| --------- | ------------------------------------------------------------------------ |
+| **3D**    | A first-person, walk-through street view of the buildings around you.    |
+| **MAP**   | A top-down map of the neighborhood, like looking at the city from above. |
+| **PHOTO** | A richer, photo-like ASCII rendering of the real skyline.                |
 
-3. Run development server
+That's it — no account, no install. Just open the link and start exploring.
 
-```sh
-yarn dev
-```
+---
 
-4. Setup Git hooks
+## For developers
 
-```sh
-yarn prepare
-```
+A [Next.js](https://nextjs.org/) app. The city is built from OpenStreetMap building data, addresses are looked up with the Google Maps API, and the PHOTO view is rendered from Mapbox GL — everything is then re-drawn as ASCII on a canvas.
 
-## Storybook
+### Getting started
 
-This project uses Storybook deployed on Vercel at the following permanent URLs:
+1. Clone the repo:
 
-<!-- Optionally add other branches/environments -->
+   ```sh
+   git clone git@github.com:codeandtheory/ASCII-3D.git
+   cd ASCII-3D
+   ```
 
-`main` branch -> [[client-project_name].vercel.app](https://[client-project_name].vercel.app) <br/>
+2. Use the right Node version:
 
-as well as on ephemeral URLs for each Pull Request.
+   ```sh
+   nvm use # or nvm install
+   ```
 
-To run Storybook locally:
+3. Install dependencies (this project uses **pnpm**):
 
-```sh
-yarn storybook
-```
+   ```sh
+   pnpm install
+   ```
 
-## New component generator
+4. Add your API keys — copy `.env.example` to `.env.local` and fill in:
 
-As a convenience there is a new component generator script which will scaffold a basic boilerplate for the new component including the Storybook template with an option to link to the component design in Figma. In order to invoke it run the following command in your terminal:
+   - `GOOGLE_MAPS_API_KEY` / `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — address search
+   - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` — optional, powers the PHOTO view
 
-```sh
-yarn new:component
-```
+5. Run the development server:
 
-And follow prompts to give component name and Figma link.
+   ```sh
+   pnpm dev
+   ```
 
-### Extending component generator
+6. Set up Git hooks:
 
-If new useful patterns are observed either to improve the existing component generator or to add an entirely new kind of generator, you can look into `.plop` folder and follow [Plop](https://plopjs.com/) documentation.
+   ```sh
+   pnpm prepare
+   ```
 
-## Environment variables
+### Common commands
 
-We're using T3 Env library to validate environment variables. Adding new environment variables (both client and server) is done inside src/env.ts file. After they're added you can use them directly:
+| Command                           | What it does                                   |
+| --------------------------------- | ---------------------------------------------- |
+| `pnpm dev`                        | Run the app locally at `http://localhost:3000` |
+| `pnpm build`                      | Production build                               |
+| `pnpm test`                       | Run the test suite (Vitest)                    |
+| `pnpm lint` / `pnpm lint:fix`     | Lint with ESLint (auto-fix available)          |
+| `pnpm format` / `pnpm format:fix` | Check / apply Prettier formatting              |
+| `pnpm storybook`                  | Run the Storybook component explorer           |
+| `pnpm new:component`              | Scaffold a new component (see below)           |
+
+Linting and formatting also run automatically on commit (via Husky) and on every pull request.
+
+### New component generator
+
+`pnpm new:component` scaffolds a boilerplate component including a Storybook template, with an option to link the component's Figma design. Follow the prompts for the component name and Figma link.
+
+To extend or add generators, see the `.plop` folder and the [Plop docs](https://plopjs.com/).
+
+### Environment variables
+
+Environment variables are validated with [T3 Env](https://env.t3.gg/). Add new ones in `src/env.ts`, then import them the same way on both server and client:
 
 ```ts
-import { env } from "@/env"; // On server
-
-export const GET = async () => {
-  const magic = await fetch("...", {
-    headers: { Authorization: env.EXAMPLE_SERVER_VAR },
-  });
-  // ...
-};
+import { env } from "@/env";
 ```
 
-```ts
-import { env } from "@/env"; // On client - same import!
+### Other tooling
 
-export const SomeComponent = () => {
-  return (
-    <SomeProvider publishableKey={env.NEXT_PUBLIC_EXAMPLE_CLIENT_VAR}>
-      {/* ... */}
-    </SomeProvider>
-  );
-};
-```
-
-## Dependency analysis
-
-Running
-
-```sh
-yarn dependency-graph
-```
-
-will start [skott](https://github.com/antoine-coulon/skott) tool on http://localhost:51024 from where you can have at glance view at both first and third party dependencies.
-
-## Linting
-
-Linting is done via [eslint](https://eslint.org/) and is triggered via yarn:
-
-```sh
-yarn lint
-```
-
-Some linting errors can be fixed automatically by eslint with:
-
-```sh
-yarn lint:fix
-```
-
-Linting is also triggered as a pre-commit action via Husky, and as a build check on pull requests in Github.
-
-## Formatting
-
-Formatting is done via [Prettier](http://prettier.io/) and is triggered via yarn:
-
-```sh
-yarn format
-```
-
-Some formatting errors can be fixed automatically by Prettier with:
-
-```sh
-yarn format:fix
-```
-
-Formatting is also triggered as a pre-commit action via Husky, and as a build check on pull requests in Github.
+- **Dependency graph** — `pnpm dependency-graph` starts [skott](https://github.com/antoine-coulon/skott) at `http://localhost:51024` for a visual view of first- and third-party dependencies.
+- **Storybook** — deployed on Vercel, with an ephemeral URL for each pull request.
+</content>
