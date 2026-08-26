@@ -151,8 +151,8 @@ importers:
         specifier: ^0.5.3
         version: 0.5.3(eslint@10.8.0(jiti@2.7.0))
       eslint-plugin-react-you-might-not-need-an-effect:
-        specifier: ^1.0.1
-        version: 1.0.1(eslint@10.8.0(jiti@2.7.0))
+        specifier: ^1.0.2
+        version: 1.0.2(eslint@10.8.0(jiti@2.7.0))
       eslint-plugin-security:
         specifier: ^4.0.1
         version: 4.0.1
@@ -2727,8 +2727,8 @@ packages:
       eslint: '*'
       typescript: '*'
 
-  eslint-plugin-react-you-might-not-need-an-effect@1.0.1:
-    resolution: {integrity: sha512-oOhQTYhor88Xp8RVytq25tvBfiAjU0r9SCDC51Qop+3Wg5BR1xGMAkM+/dV4MZbcMhdaU1L9bkv6LC95JmiTig==}
+  eslint-plugin-react-you-might-not-need-an-effect@1.0.2:
+    resolution: {integrity: sha512-HgYol2zhH3KbnW9Q4FY/FcIINbsYVL6rwQESChqBC2s9SLWtw1wg05+J7SCrr3BfQpNY2ReYhf8xjpd2JhKJOQ==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       eslint: '>=8.40.0'
@@ -2798,6 +2798,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -7122,7 +7123,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-react-you-might-not-need-an-effect@1.0.1(eslint@10.8.0(jiti@2.7.0)):
+  eslint-plugin-react-you-might-not-need-an-effect@1.0.2(eslint@10.8.0(jiti@2.7.0)):
     dependencies:
       eslint: 10.8.0(jiti@2.7.0)
       globals: 16.5.0
