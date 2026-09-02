@@ -94,8 +94,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       '@types/google.maps':
-        specifier: ^3.65.5
-        version: 3.65.5
+        specifier: ^3.66.0
+        version: 3.66.0
       '@types/mapbox-gl':
         specifier: ^3.5.0
         version: 3.5.0
@@ -1762,8 +1762,8 @@ packages:
   '@types/geojson@7946.0.16':
     resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
 
-  '@types/google.maps@3.65.5':
-    resolution: {integrity: sha512-oR9Hq/WaKGzIguZEwoCuyQ0ofDhCbefmS9RrjLUZ5scMziwTE6xA90drJYt2ZsyUCYmCqnxQcDpfGqeRE/Zgog==}
+  '@types/google.maps@3.66.0':
+    resolution: {integrity: sha512-HOvl5nXOBazgI9rgG79mWm4sNuA08ig+AMvdCQ/rEAzXJQFfKj/LqjaP+fHLM5JFa68+VKiN15NWFBos8/Kr9w==}
 
   '@types/inquirer@9.0.9':
     resolution: {integrity: sha512-/mWx5136gts2Z2e5izdoRCo46lPp5TMs9R15GTSsgg/XnZyxDWVqoVU3R9lWnccKpqwsJLvRoxbCjoJtZB7DSw==}
@@ -2798,6 +2798,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -5187,7 +5188,7 @@ snapshots:
 
   '@googlemaps/js-api-loader@2.1.1':
     dependencies:
-      '@types/google.maps': 3.65.5
+      '@types/google.maps': 3.66.0
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -5999,7 +6000,7 @@ snapshots:
 
   '@types/geojson@7946.0.16': {}
 
-  '@types/google.maps@3.65.5': {}
+  '@types/google.maps@3.66.0': {}
 
   '@types/inquirer@9.0.9':
     dependencies:
