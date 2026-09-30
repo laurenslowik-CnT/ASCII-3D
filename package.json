@@ -20,7 +20,7 @@
     "typecheck": "next build --experimental-build-mode compile && tsc --noEmit"
   },
   "dependencies": {
-    "@googlemaps/js-api-loader": "^2.1.1",
+    "@googlemaps/js-api-loader": "^2.1.3",
     "@mapbox/vector-tile": "^3.0.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "clsx": "^2.1.1",
