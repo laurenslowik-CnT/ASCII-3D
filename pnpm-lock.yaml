@@ -49,8 +49,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.8.0(jiti@2.7.0))
       '@eslint/json':
-        specifier: ^2.0.1
-        version: 2.0.1
+        specifier: ^2.1.1
+        version: 2.1.1
       '@next/eslint-plugin-next':
         specifier: 16.2.12
         version: 16.2.12
@@ -655,8 +655,8 @@ packages:
     resolution: {integrity: sha512-QywQuszQh77pIXCsq998c8hbhSTI/azTty1Z6N53dmAudKHhy573j3yvRLsX2BSp8YpLtoCEG8E9DJe+8zUh4A==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@eslint/json@2.0.1':
-    resolution: {integrity: sha512-Thz2j92ceUF3Bq/0TuWb3MWn3Z+Cwc8k5ptF0fakl2D4Mp8mSx07Xr1aQM4R5NoihzarWUdxfOmQ8DesGy4jOg==}
+  '@eslint/json@2.1.1':
+    resolution: {integrity: sha512-ffVzPZALaJzxuo46ggBtJ9c8YBWKLMh/R35aFBHk/dRobmFNortJlHJfBWbHGuydoFeVZbvPy0PLX2wvCI9T9w==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
   '@eslint/object-schema@2.1.7':
@@ -673,6 +673,10 @@ packages:
 
   '@eslint/plugin-kit@0.7.2':
     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@eslint/plugin-kit@0.7.3':
+    resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
   '@exodus/bytes@1.15.1':
@@ -711,8 +715,8 @@ packages:
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
     engines: {node: '>=12.22'}
 
-  '@humanwhocodes/momoa@3.3.10':
-    resolution: {integrity: sha512-KWiFQpSAqEIyrTXko3hFNLeQvSK8zXlJQzhhxsyVn58WFRYXST99b3Nqnu+ttOtjds2Pl2grUHGpe2NzhPynuQ==}
+  '@humanwhocodes/momoa@3.3.13':
+    resolution: {integrity: sha512-AbKq3EW41+HY6pNMJgAOrz68iyiTTf0Nr1JRHHfuG5zwniJ9Dw8J3U7oa1I2ptpqYwmEf1sXKOGK6lbdZ9eqmg==}
     engines: {node: '>=18'}
 
   '@humanwhocodes/retry@0.4.3':
@@ -2798,6 +2802,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -5152,11 +5157,11 @@ snapshots:
 
   '@eslint/js@9.39.5': {}
 
-  '@eslint/json@2.0.1':
+  '@eslint/json@2.1.1':
     dependencies:
       '@eslint/core': 1.2.1
-      '@eslint/plugin-kit': 0.7.2
-      '@humanwhocodes/momoa': 3.3.10
+      '@eslint/plugin-kit': 0.7.3
+      '@humanwhocodes/momoa': 3.3.13
       natural-compare: 1.4.0
 
   '@eslint/object-schema@2.1.7': {}
@@ -5169,6 +5174,11 @@ snapshots:
       levn: 0.4.1
 
   '@eslint/plugin-kit@0.7.2':
+    dependencies:
+      '@eslint/core': 1.2.1
+      levn: 0.4.1
+
+  '@eslint/plugin-kit@0.7.3':
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
@@ -5203,7 +5213,7 @@ snapshots:
 
   '@humanwhocodes/module-importer@1.0.1': {}
 
-  '@humanwhocodes/momoa@3.3.10': {}
+  '@humanwhocodes/momoa@3.3.13': {}
 
   '@humanwhocodes/retry@0.4.3': {}
 
